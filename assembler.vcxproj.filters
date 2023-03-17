@@ -29,7 +29,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Header.h" />
     <ClInclude Include="instruction.h" />
     <ClInclude Include="opcode_table.h" />
   </ItemGroup>
