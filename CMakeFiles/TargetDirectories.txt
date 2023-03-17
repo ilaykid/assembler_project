@@ -1,0 +1,3 @@
+C:/Users/Lavy/source/repos/‏‏Project-C-New-IlayKidron/CMakeFiles/assembler.dir
+C:/Users/Lavy/source/repos/‏‏Project-C-New-IlayKidron/CMakeFiles/ALL_BUILD.dir
+C:/Users/Lavy/source/repos/‏‏Project-C-New-IlayKidron/CMakeFiles/ZERO_CHECK.dir
