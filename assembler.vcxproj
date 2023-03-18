@@ -321,14 +321,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="C:\Users\Lavy\source\repos\‏‏Project-C-New-IlayKidron\utilities.c" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="C:\Users\Lavy\source\repos\‏‏Project-C-New-IlayKidron\ZERO_CHECK.vcxproj">
-      <Project>{776DA6AD-EEE8-34D9-9888-A8F01D6EFA5A}</Project>
-      <Name>ZERO_CHECK</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="instruction.h" />
     <ClInclude Include="opcode_table.h" />
   </ItemGroup>
