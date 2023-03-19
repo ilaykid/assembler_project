@@ -4,8 +4,8 @@
 #include "utilities.h"
 #include "opcode_table.h"
 OpcodeTableEntry opcode_table[] = {
-    {"opcode1", 1}, // Replace "opcode1" with a real opcode and set the appropriate num_words value
-    {"opcode2", 2},
+    {"ACTUAL_OPCODE1", 1},
+    {"ACTUAL_OPCODE2", 2},
     // Add more opcodes here
 };
 /* Function to remove whitespace from the beginning and end of a string */
@@ -138,4 +138,22 @@ const OpcodeTableEntry* opcode_table_lookup(const char* opcode) {
         }
     }
     return NULL;
+}
+/* Function to perform two's complement addition */
+int twos_complement_add(int a, int b) {
+    int result = a + b;
+    int mask = (1 << WORD_SIZE) - 1; // Mask to limit the result to WORD_SIZE bits
+    return result & mask;
+}
+
+/* Function to perform two's complement subtraction */
+int twos_complement_subtract(int a, int b) {
+    int result = a - b;
+    int mask = (1 << WORD_SIZE) - 1; // Mask to limit the result to WORD_SIZE bits
+    return result & mask;
+}
+/* Function to check if a number is negative in two's complement representation */
+bool is_negative(int number) {
+    int mask = 1 << (WORD_SIZE - 1); // Mask to check the most significant bit
+    return (number & mask) != 0;
 }

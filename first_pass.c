@@ -4,7 +4,7 @@
 #include "first_pass.h"
 #include "symbol_table.h"
 #include "constants.h"
-#include "instruction.h"
+#include "instructions.h"
 #include "opcode_table.h"
 
 bool process_line_first_pass(const char* line);

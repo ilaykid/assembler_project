@@ -19,6 +19,12 @@
     <ClCompile Include="C:\Users\Lavy\source\repos\‏‏Project-C-New-IlayKidron\utilities.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="instruction_structure.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="addressing_methods.c" />
+    <ClCompile Include="instructions.c" />
+    <ClCompile Include="operand.c" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="C:\Users\Lavy\source\repos\‏‏Project-C-New-IlayKidron\CMakeLists.txt" />
@@ -27,9 +33,21 @@
     <Filter Include="Source Files">
       <UniqueIdentifier>{4964A719-FA02-3BD3-B28F-F596E1817FC7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Test Files">
+      <UniqueIdentifier>{08a16bda-b54e-4c55-8eb8-e4302e7e8c24}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="instruction.h" />
+    <ClInclude Include="instructions.h" />
     <ClInclude Include="opcode_table.h" />
+    <ClInclude Include="instruction_structure.h" />
+    <ClInclude Include="action_codes.h" />
+    <ClInclude Include="addressing_methods.h" />
+    <ClInclude Include="operand.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TestWithMacro.as">
+      <Filter>Test Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
