@@ -15,6 +15,10 @@ int main(int argc, char* argv[]) {
         const char* input_filename = argv[i];
         printf("Processing file: %s\n", input_filename);
 
+        if (!preprocess(input_filename)) {
+            printf("Error: Preprocessing failed for file: %s\n", input_filename);
+            continue;
+        }
         // First pass
         if (!first_pass(input_filename)) {
             printf("Error: First pass failed for file: %s\n", input_filename);

@@ -3,7 +3,11 @@
 
 /* Maximum length of a line in the input file */
 #define MAX_LINE_LENGTH 256
-
+/* Maximum length of a label in the input file */
+#define MAX_LABEL_LENGTH 16
+/* Maximum number of macros in the input file */
+#define MAX_MACROS 5
+#define MAX_LINES_PER_MACRO 4
 /* Maximum length of a symbol in the input file */
 #define MAX_SYMBOL_LENGTH 31
 
