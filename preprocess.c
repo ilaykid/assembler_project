@@ -18,30 +18,26 @@ static Macro* macro_table = NULL;
 void insert_macro(const char* name, MacroLine* lines);
 Macro* get_macro(const char* name);
 
-bool preprocess(const char* input_filename) {
-    FILE* input_file = fopen(input_filename, "r");
-    if (!input_file) {
-        printf("Error: Failed to open input file: %s\n", input_filename);
-        return false;
-    }
-    char output_filename[MAX_FILENAME_LENGTH];
-    char base_input_filename[MAX_FILENAME_LENGTH];
-    int len1 = strlen(input_filename);
-    strncpy(base_input_filename, input_filename, len1 - 3);
-    base_input_filename[len1 - 3] = '\0';
-    sprintf(output_filename, "%s.am", base_input_filename);
-    FILE* output_file = fopen(output_filename, "w");
-    if (!output_file) {
-        printf("Error: Failed to create output file: %s\n", output_filename);
-        fclose(input_file);
-        return false;
-    }
-
+bool preprocess(const char* base_filename) {
     int macro_flag = 0;
     char line[MAX_LINE_LENGTH];
     char macro_name[MAX_LABEL_LENGTH];
-
-    while (fgets(line, MAX_LINE_LENGTH, input_file)) {
+    char as_filename[MAX_FILENAME_LENGTH];
+    char am_filename[MAX_FILENAME_LENGTH];
+    sprintf(as_filename, "%s.as", base_filename);
+    sprintf(am_filename, "%s.am", base_filename);
+    FILE* as_file = fopen(as_filename, "r");
+    if (!as_file) {
+        printf("Error: Failed to open input file: %s\n", base_filename);
+        return false;
+    }
+    FILE* am_file = fopen(am_filename, "w");
+    if (!am_file) {
+        printf("Error: Failed to create output file: %s\n", am_filename);
+        fclose(as_file);
+        return false;
+    }
+    while (fgets(line, MAX_LINE_LENGTH, as_file)) {
         /* Check for macro definition */
         if (strncmp(line, "mcr", 3) == 0) {
             /* Turn on macro flag */
@@ -50,7 +46,7 @@ bool preprocess(const char* input_filename) {
             sscanf(line, "mcr %s", macro_name);
             MacroLine* lines = NULL;
             MacroLine* curr_line = NULL;
-            while (fgets(line, MAX_LINE_LENGTH, input_file)) {
+            while (fgets(line, MAX_LINE_LENGTH, as_file)) {
                 if (strncmp(line, "endmcr", 6) == 0) {
                     /* Turn off macro flag */
                     macro_flag = 0;
@@ -82,20 +78,20 @@ bool preprocess(const char* input_filename) {
                 /* Copy macro lines to output file */
                 MacroLine* curr_line = macro->lines;
                 while (curr_line) {
-                    fprintf(output_file, "%s", curr_line->line);
+                    fprintf(am_file, "%s", curr_line->line);
                     curr_line = curr_line->next;
                 }
             }
             else {
                 /* Write line to output file */
-                fputs(line, output_file);
+                fputs(line, am_file);
             }
         }
     }
 
     /* Close files */
-    fclose(input_file);
-    fclose(output_file);
+    fclose(as_file);
+    fclose(am_file);
 
     return true;
 }

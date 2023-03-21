@@ -12,31 +12,31 @@ int main(int argc, char* argv[]) {
 
     // Process input assembly files one by one
     for (int i = 1; i < argc; i++) {
-        const char* input_filename = argv[i];
-        printf("Processing file: %s\n", input_filename);
+        const char* base_filename = argv[i];
+        printf("Processing file: %s\n", base_filename);
 
-        if (!preprocess(input_filename)) {
-            printf("Error: Preprocessing failed for file: %s\n", input_filename);
+        if (!preprocess(base_filename)) {
+            printf("Error: Preprocessing failed for file: %s\n", base_filename);
             continue;
         }
         // First pass
-        if (!first_pass(input_filename)) {
-            printf("Error: First pass failed for file: %s\n", input_filename);
+        if (!first_pass(base_filename)) {
+            printf("Error: First pass failed for file: %s\n", base_filename);
             continue;
         }
 
         // Second pass
-        if (!second_pass(input_filename)) {
-            printf("Error: Second pass failed for file: %s\n", input_filename);
+        if (!second_pass(base_filename)) {
+            printf("Error: Second pass failed for file: %s\n", base_filename);
             continue;
         }
 
         // Generate output files
-        if (!generate_output_files(input_filename)) {
-            printf("Error: Failed to generate output files for file: %s\n", input_filename);
+        if (!generate_output_files(base_filename)) {
+            printf("Error: Failed to generate output files for file: %s\n", base_filename);
         }
         else {
-            printf("Successfully processed file: %s\n", input_filename);
+            printf("Successfully processed file: %s\n", base_filename);
         }
     }
 

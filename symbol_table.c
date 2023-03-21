@@ -5,9 +5,14 @@
 #include "symbol_table.h"
 #include "constants.h"
 
-/* initialize SymbolTable */
-SymbolTableEntry* init_symbol_table() {
-    SymbolTableEntry* symbol_table = NULL;
+/* Singleton instance of the symbol table */
+static SymbolTable* symbol_table = NULL;
+
+/* Get the singleton instance of the symbol table*/
+SymbolTable* get_symbol_table_instance() {
+    if (symbol_table == NULL) {
+        symbol_table = init_symbol_table();
+    }
     return symbol_table;
 }
 /* Function to create a new symbol node */
@@ -29,25 +34,25 @@ SymbolNode* new_symbol_node(const char* label, int address, SymbolAttribute attr
     return node;
 }
 
-/* Function to add a symbol to the symbol table */
-void add_symbol(SymbolTable* table, const char* label, int address, SymbolAttribute attribute)
-{
-    SymbolNode* new_node = new_symbol_node(label, address, attribute);
-
-    if (table->head == NULL)
-    {
-        table->head = new_node;
-    }
-    else
-    {
-        SymbolNode* current = table->head;
-        while (current->next)
-        {
-            current = current->next;
-        }
-        current->next = new_node;
-    }
-}
+///* Function to add a symbol to the symbol table */
+//void add_symbol(SymbolTable* table, const char* label, int address, SymbolAttribute attribute)
+//{
+//    SymbolNode* new_node = new_symbol_node(label, address, attribute);
+//
+//    if (table->head == NULL)
+//    {
+//        table->head = new_node;
+//    }
+//    else
+//    {
+//        SymbolNode* current = table->head;
+//        while (current->next)
+//        {
+//            current = current->next;
+//        }
+//        current->next = new_node;
+//    }
+//}
 
 /* Function to search for a symbol in the symbol table */
 SymbolNode* find_symbol(SymbolTable* table, const char* label)
@@ -67,48 +72,16 @@ SymbolNode* find_symbol(SymbolTable* table, const char* label)
 }
 
 /* Function to add a new symbol to the symbol table */
-SymbolTableEntry* add_to_symbol_table(SymbolTableEntry** symbol_table, const char* symbol, unsigned int address, bool entry_flag, bool external_flag) {
-    // Allocate memory for the new entry
-    SymbolTableEntry* new_entry = (SymbolTableEntry*)malloc(sizeof(SymbolTableEntry));
-    if (!new_entry) {
+bool add_to_symbol_table(const char* symbol, unsigned int address) {
+    /* Allocate memory for the new entry*/
+    SymbolTable* table = get_symbol_table_instance();
+    if (!table) {
         return NULL;
     }
-    // Initialize the new entry
-    strncpy(new_entry->symbol, symbol, MAX_SYMBOL_LENGTH);
-    new_entry->address = address;
-    new_entry->entry_flag = entry_flag;
-    new_entry->external_flag = external_flag;
-    new_entry->next = NULL;
-
-    // If the symbol table is empty, make the new entry the head
-    if (!*symbol_table) {
-        *symbol_table = new_entry;
-    }
-    else {
-        // Find the last entry in the symbol table
-        SymbolTableEntry* current_entry = *symbol_table;
-        while (current_entry->next) {
-            current_entry = current_entry->next;
-        }
-
-        // Add the new entry to the end of the symbol table
-        current_entry->next = new_entry;
-    }
-
-    return new_entry;
-}
-/* Function to free the symbol table */
-void free_symbol_table(SymbolTable* table)
-{
-    SymbolNode* current = table->head;
-    SymbolNode* next;
-
-    while (current)
-    {
-        next = current->next;
-        free(current);
-        current = next;
-    }
-
-    table->head = NULL;
+    /* Initialize the new entry*/
+    strncpy(table->symbol, symbol, MAX_SYMBOL_LENGTH);
+    table->address = address;
+    
+    //add the symo
+    return table;
 }

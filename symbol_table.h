@@ -17,24 +17,14 @@ typedef struct SymbolNode
     SymbolAttribute attribute;
     struct SymbolNode* next;
 } SymbolNode;
-
-typedef struct
-{
-    SymbolNode* head;
-} SymbolTable;
-
 typedef struct SymbolTableEntry {
     char* symbol;
     int address;
-    int entry_flag;
-    int external_flag;
-    struct SymbolTableEntry* next;
-} SymbolTableEntry;
+} SymbolTable;
 /* Function to create a new symbol node */
 SymbolNode* new_symbol_node(const char* label, int address, SymbolAttribute attribute);
 
-/* Function to add a symbol to the symbol table */
-void add_symbol(SymbolTable* table, const char* label, int address, SymbolAttribute attribute);
+//void add_symbol(SymbolTable* table, const char* label, int address, SymbolAttribute attribute);
 
 /* Function to search for a symbol in the symbol table */
 SymbolNode* find_symbol(SymbolTable* table, const char* label);
@@ -42,6 +32,7 @@ SymbolNode* find_symbol(SymbolTable* table, const char* label);
 /* Function to free the symbol table */
 void free_symbol_table(SymbolTable* table);
 
-SymbolTableEntry* init_symbol_table();
-
+SymbolTable* init_symbol_table();
+/* Function to add a symbol to the symbol table */
+bool add_to_symbol_table(const char* symbol, unsigned int address);
 #endif /* SYMBOL_TABLE_H */

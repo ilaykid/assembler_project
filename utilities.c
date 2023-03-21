@@ -77,13 +77,11 @@ void free_split_string(char** str_array, int count)
 bool parse_label(const char* line, char* label) {
     const char* ptr = line;
     int label_len = 0;
-
-    // Skip leading white spaces
+    /* Skip leading white spaces*/
     while (isspace(*ptr)) {
         ptr++;
     }
-
-    // Check if the line starts with a label
+    /* Check if the line starts with a label*/
     if (!isalpha(*ptr) && *ptr != '_') {
         return false;
     }
@@ -104,7 +102,7 @@ bool parse_label(const char* line, char* label) {
     return true;
 }
 /* Parses an instruction from a given line */
-void parse_instruction(const char* line, char* instruction) {
+bool parse_instruction(const char* line, char* instruction) {
     const char* start = NULL;
     const char* end = NULL;
 
@@ -125,9 +123,11 @@ void parse_instruction(const char* line, char* instruction) {
         int len = end - start + 1;
         strncpy(instruction, start, len);
         instruction[len] = '\0';
+        return true;
     }
     else {
         instruction[0] = '\0';
+        return false;
     }
 }
 const OpcodeTableEntry* opcode_table_lookup(const char* opcode) {

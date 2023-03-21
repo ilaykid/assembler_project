@@ -68,4 +68,10 @@
 #define ENCODING_OFFSET 2
 #define REGISTER_DIRECT 3
 
+#define STRING_DIRECTIVE ".string"
+#define DATA_DIRECTIVE ".data"
+#define ENTRY_DIRECTIVE ".entry"
+#define EXTERN_DIRECTIVE ".extern"
+
+
 #endif /* CONSTANTS_H */

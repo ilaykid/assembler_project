@@ -32,7 +32,7 @@ void generate_object_file(const char* filename, const int* code_array, int code_
 /* Function to generate the entry file */
 void generate_entry_file(const char* filename, SymbolTable* symbol_table) {
     FILE* file;
-    SymbolTableEntry* entry;
+    SymbolTable* entry;
 
     file = fopen(filename, "w");
     if (!file) {
@@ -54,7 +54,7 @@ void generate_entry_file(const char* filename, SymbolTable* symbol_table) {
 /* Function to generate the external file */
 void generate_external_file(const char* filename, SymbolTable* symbol_table) {
     FILE* file;
-    SymbolTableEntry* entry;
+    SymbolTable* entry;
 
     file = fopen(filename, "w");
     if (!file) {
