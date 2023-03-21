@@ -1,9 +1,17 @@
+#pragma once
 #include "opcode_table.h"
 #include <stdbool.h>
+#include "symbol_table.c"
 #ifndef UTILITIES_H
 #define UTILITIES_H
-extern OpcodeTableEntry opcode_table[];
 
+extern OpcodeTableEntry opcode_table[];
+typedef struct {
+    int IC;
+    int DC;
+    SymbolTableEntry* symbol_table;
+} AssemblerState;
+extern AssemblerState global_state;
 /* Function to remove whitespace from the beginning and end of a string */
 void trim_whitespace(char* str);
 

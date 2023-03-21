@@ -3,6 +3,7 @@
 #include "first_pass.h"
 #include "second_pass.h"
 #include "output_generator.h"
+#include "utilities.h"
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -14,7 +15,6 @@ int main(int argc, char* argv[]) {
     for (int i = 1; i < argc; i++) {
         const char* base_filename = argv[i];
         printf("Processing file: %s\n", base_filename);
-
         if (!preprocess(base_filename)) {
             printf("Error: Preprocessing failed for file: %s\n", base_filename);
             continue;

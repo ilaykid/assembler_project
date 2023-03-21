@@ -90,10 +90,12 @@ bool process_line_first_pass(const char* line) {
     }
     /* Check for labels, add them to the symbol table if found*/
     has_label = parse_label(line, label);
-    if (is_line_contains_word(line, STRING_DIRECTIVE))
-        
-    if (has_label) {
-        //add_to_symbol_table(label, instruction_counter);
+    if (is_line_contains_word(line, STRING_DIRECTIVE) ||
+        is_line_contains_word(line, DATA_DIRECTIVE))
+    {
+        if (has_label) {
+            //add_to_symbol_table(label, instruction_counter);
+        }
     }
     return true;
     // Parse the instruction, identify opcode and operands

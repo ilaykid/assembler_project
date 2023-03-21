@@ -4,84 +4,52 @@
 #include <stdbool.h>
 #include "symbol_table.h"
 #include "constants.h"
+#include "utilities.h"
 
-/* Singleton instance of the symbol table */
-static SymbolTable* symbol_table = NULL;
-
-/* Get the singleton instance of the symbol table*/
-SymbolTable* get_symbol_table_instance() {
-    if (symbol_table == NULL) {
-        symbol_table = init_symbol_table();
-    }
-    return symbol_table;
-}
-/* Function to create a new symbol node */
-SymbolNode* new_symbol_node(const char* label, int address, SymbolAttribute attribute)
-{
-    SymbolNode* node = (SymbolNode*)malloc(sizeof(SymbolNode));
-    if (!node)
-    {
-        fprintf(stderr, "Error: Failed to allocate memory for a new symbol node.\n");
-        exit(EXIT_FAILURE);
+typedef struct SymbolTableEntry {
+    char symbol[MAX_SYMBOL_LENGTH + 1];
+    unsigned int address;
+    bool relocatable;
+    bool data_part;
+    struct SymbolTableEntry* next;
+} SymbolTableEntry;
+void add_to_symbol_table(const char* symbol, unsigned int address,
+    bool relocatable, bool data_part) {
+    SymbolTableEntry* new_entry = (SymbolTableEntry*)malloc(sizeof(SymbolTableEntry));
+    if (!new_entry) {
+        return;
     }
 
-    strncpy(node->label, label, MAX_LABEL_LENGTH);
-    node->label[MAX_LABEL_LENGTH - 1] = '\0';
-    node->address = address;
-    node->attribute = attribute;
-    node->next = NULL;
+    strncpy(new_entry->symbol, symbol, MAX_SYMBOL_LENGTH);
+    new_entry->address = address;
+    new_entry->relocatable = relocatable;
+    new_entry->data_part = data_part;
+    new_entry->next = NULL;
 
-    return node;
-}
-
-///* Function to add a symbol to the symbol table */
-//void add_symbol(SymbolTable* table, const char* label, int address, SymbolAttribute attribute)
-//{
-//    SymbolNode* new_node = new_symbol_node(label, address, attribute);
-//
-//    if (table->head == NULL)
-//    {
-//        table->head = new_node;
-//    }
-//    else
-//    {
-//        SymbolNode* current = table->head;
-//        while (current->next)
-//        {
-//            current = current->next;
-//        }
-//        current->next = new_node;
-//    }
-//}
-
-/* Function to search for a symbol in the symbol table */
-SymbolNode* find_symbol(SymbolTable* table, const char* label)
-{
-    SymbolNode* current = table->head;
-
-    while (current)
-    {
-        if (strcmp(current->label, label) == 0)
-        {
-            return current;
+    if (!global_state.symbol_table) {
+        global_state.symbol_table = new_entry;
+    }
+    else {
+        SymbolTableEntry* current_entry = global_state.symbol_table;
+        while (current_entry->next) {
+            current_entry = current_entry->next;
         }
-        current = current->next;
+        current_entry->next = new_entry;
     }
-
-    return NULL;
 }
 
-/* Function to add a new symbol to the symbol table */
-bool add_to_symbol_table(const char* symbol, unsigned int address) {
-    /* Allocate memory for the new entry*/
-    SymbolTable* table = get_symbol_table_instance();
-    if (!table) {
-        return NULL;
+void process_data_directive(const char* line) {
+    char label[MAX_SYMBOL_LENGTH + 1] = { 0 };
+    sscanf(line, "%s .data", label);
+
+    if (strlen(label) > 0) {
+        add_to_symbol_table(label, global_state.DC, true, true);
     }
-    /* Initialize the new entry*/
-    strncpy(table->symbol, symbol, MAX_SYMBOL_LENGTH);
-    table->address = address;
-    
-    //add the symo
-    return table;
+
+    const char* data_start = strstr(line, ".data") + strlen(".data");
+    int value;
+    while (sscanf(data_start, "%d", &value) == 1) {
+        global_state.DC++;
+        data_start = strchr(data_start, ',') + 1;
+    }
 }
