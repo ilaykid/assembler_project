@@ -31,10 +31,10 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        // Generate output files
-        if (!generate_output_files(base_filename)) {
-            printf("Error: Failed to generate output files for file: %s\n", base_filename);
-        }
+        //// Generate output files
+        //if (!generate_output_files(base_filename)) {
+        //    printf("Error: Failed to generate output files for file: %s\n", base_filename);
+        //}
         else {
             printf("Successfully processed file: %s\n", base_filename);
         }

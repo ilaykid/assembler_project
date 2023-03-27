@@ -8,7 +8,12 @@ OpcodeTableEntry opcode_table[] = {
     {"ACTUAL_OPCODE2", 2},
     // Add more opcodes here
 };
-AssemblerState global_state = { 0, 0, NULL };
+void init_global_state(AssemblerState global_state)
+{
+    global_state.instruction_counter = 0;
+    global_state.data_counter = 0;
+}
+//AssemblerState global_state = { 0, 0, NULL };
 /* Function to remove whitespace from the beginning and end of a string */
 void trim_whitespace(char* str)
 {

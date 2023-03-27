@@ -6,18 +6,12 @@
 #include "constants.h"
 #include "utilities.h"
 
-typedef struct SymbolTableEntry {
-    char symbol[MAX_SYMBOL_LENGTH + 1];
-    unsigned int address;
-    bool relocatable;
-    bool data_part;
-    struct SymbolTableEntry* next;
-} SymbolTableEntry;
-void add_to_symbol_table(const char* symbol, unsigned int address,
+
+bool add_to_symbol_table(const char* symbol, unsigned int address,
     bool relocatable, bool data_part) {
     SymbolTableEntry* new_entry = (SymbolTableEntry*)malloc(sizeof(SymbolTableEntry));
     if (!new_entry) {
-        return;
+        return false;
     }
 
     strncpy(new_entry->symbol, symbol, MAX_SYMBOL_LENGTH);
@@ -36,6 +30,7 @@ void add_to_symbol_table(const char* symbol, unsigned int address,
         }
         current_entry->next = new_entry;
     }
+    return true;
 }
 
 void process_data_directive(const char* line) {
@@ -43,13 +38,13 @@ void process_data_directive(const char* line) {
     sscanf(line, "%s .data", label);
 
     if (strlen(label) > 0) {
-        add_to_symbol_table(label, global_state.DC, true, true);
+        add_to_symbol_table(label, global_state.data_counter, true, true);
     }
 
     const char* data_start = strstr(line, ".data") + strlen(".data");
     int value;
     while (sscanf(data_start, "%d", &value) == 1) {
-        global_state.DC++;
+        global_state.data_counter++;
         data_start = strchr(data_start, ',') + 1;
     }
 }

@@ -1,17 +1,26 @@
 #pragma once
 #include "opcode_table.h"
+#include "constants.h"
 #include <stdbool.h>
-#include "symbol_table.c"
+#include "symbol_table.h"
 #ifndef UTILITIES_H
 #define UTILITIES_H
 
-extern OpcodeTableEntry opcode_table[];
 typedef struct {
-    int IC;
-    int DC;
     SymbolTableEntry* symbol_table;
+    unsigned int instruction_counter;
+    unsigned int data_counter;
+    unsigned int entry_counter;
+    unsigned int extern_counter;
+    unsigned int code_length;
+    unsigned int data_length;
+    unsigned int code_image[MAX_CODE_ARRAY_SIZE];
+    unsigned int data_image[MAX_DATA_ARRAY_SIZE];
 } AssemblerState;
 extern AssemblerState global_state;
+extern OpcodeTableEntry opcode_table[];
+
+void init_global_state(AssemblerState global_state);
 /* Function to remove whitespace from the beginning and end of a string */
 void trim_whitespace(char* str);
 

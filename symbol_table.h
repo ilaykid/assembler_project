@@ -1,5 +1,16 @@
-//#ifndef SYMBOL_TABLE_H
-//#define SYMBOL_TABLE_H
+#include "constants.h"
+#ifndef SYMBOL_TABLE_H
+#define SYMBOL_TABLE_H
+typedef struct SymbolTableEntry {
+    char symbol[MAX_SYMBOL_LENGTH + 1];
+    unsigned int address;
+    bool relocatable;
+    bool data_part;
+    struct SymbolTableEntry* next;
+} SymbolTableEntry;
+
+bool add_to_symbol_table(const char* symbol, unsigned int address,
+    bool relocatable, bool data_part);
 //
 //#define MAX_LABEL_LENGTH 32
 //
@@ -35,4 +46,4 @@
 //SymbolTable* init_symbol_table();
 ///* Function to add a symbol to the symbol table */
 //bool add_to_symbol_table(const char* symbol, unsigned int address);
-//#endif /* SYMBOL_TABLE_H */
+#endif /* SYMBOL_TABLE_H */

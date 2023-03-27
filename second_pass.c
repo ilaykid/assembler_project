@@ -34,10 +34,11 @@ bool process_line_second_pass(const char* line) {
     }
 
     // Process the instruction and generate machine code
-    if (!process_instruction_second_pass(opcode, operands)) {
-        printf("Error: Failed to process instruction on line: %s\n", line);
-        return false;
-    }
+
+    //if (!process_instruction_second_pass(opcode, operands)) {
+    //    printf("Error: Failed to process instruction on line: %s\n", line);
+    //    return false;
+    //}
 
     // Return true if the line processing is successful
     return true;

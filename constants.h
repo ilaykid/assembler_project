@@ -9,6 +9,7 @@
 #define MAX_LABEL_LENGTH 16
 /* Maximum number of macros in the input file */
 #define MAX_MACROS 5
+#define MAX_STRING_LENGTH 10
 #define MAX_LINES_PER_MACRO 4
 /* Maximum length of a symbol in the input file */
 #define MAX_SYMBOL_LENGTH 31
@@ -21,6 +22,7 @@
 
 /* Maximum size of the code array */
 #define MAX_CODE_ARRAY_SIZE 4096
+#define MAX_DATA_ARRAY_SIZE 4096
 
 /* Maximum size of opcode */
 #define MAX_OPCODE_LENGTH 10
@@ -67,7 +69,7 @@
 
 #define DIRECT 0
 #define IMMEDIATE 1
-#define ENCODING_OFFSET 2
+#define JUMP 2
 #define REGISTER_DIRECT 3
 
 #define STRING_DIRECTIVE ".string"
