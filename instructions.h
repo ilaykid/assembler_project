@@ -16,7 +16,7 @@ int read_operand_address(Operand operand);
 void write_operand_value(Operand operand, int value);
 void set_zero_flag(int value);
 typedef struct {
-    int opcode;
+    int mnemonic;
     char operands[MAX_OPERANDS_LENGTH + 1];
 } Instruction;
 

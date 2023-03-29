@@ -3,8 +3,8 @@
 #define OPCODE_TABLE_H
 
 typedef struct {
-    int opcode;
     char mnemonic[MAX_OPCODE_LENGTH + 1];
+    int opcode_index;
     int num_words;
 }   OpcodeTableEntry;
 

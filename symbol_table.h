@@ -6,11 +6,12 @@ typedef struct SymbolTableEntry {
     unsigned int address;
     bool relocatable;
     bool data_part;
+    char* symbol_type;
     struct SymbolTableEntry* next;
 } SymbolTableEntry;
 
 bool add_to_symbol_table(const char* symbol, unsigned int address,
-    bool relocatable, bool data_part);
+    bool relocatable, bool data_part, char* symbol_type);
 //
 //#define MAX_LABEL_LENGTH 32
 //

@@ -30,9 +30,13 @@ char* get_operand(const char* line) {
     }
 
     // Return the operand string
-    return strdup(operand_start);
+    char* operand = strdup(operand_start);
+    if (operand == NULL) {
+        printf("Error: Failed to allocate memory for operand\n");
+        exit(1);
+    }
+    return operand;
 }
-
 ///* Extract the operand from the given string */
 //bool get_operand(const char* operand_str, Operand* operand) {
 //    // Check for immediate addressing mode

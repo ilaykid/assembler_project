@@ -8,7 +8,7 @@
 
 
 bool add_to_symbol_table(const char* symbol, unsigned int address,
-    bool relocatable, bool data_part) {
+    bool relocatable, bool data_part,char* symbol_type) {
     SymbolTableEntry* new_entry = (SymbolTableEntry*)malloc(sizeof(SymbolTableEntry));
     if (!new_entry) {
         return false;
@@ -38,7 +38,7 @@ void process_data_directive(const char* line) {
     sscanf(line, "%s .data", label);
 
     if (strlen(label) > 0) {
-        add_to_symbol_table(label, global_state.data_counter, true, true);
+        add_to_symbol_table(label, global_state.data_counter, true, true,DATA_DIRECTIVE);
     }
 
     const char* data_start = strstr(line, ".data") + strlen(".data");

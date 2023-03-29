@@ -9,10 +9,29 @@
 #include "utilities.h"
 #include "operand.h"
 AssemblerState global_state;
+bool handle_operands(char* line, const char* directive);
+bool parse_directive(const char* line, char* directive);
 bool parse_opcode(const char* line, char* opcode);
 bool is_addressing_mode_relative(const char* instruction);
 bool process_line_first_pass(const char* line);
 bool is_line_contains_opcode(const char* line);
+bool handle_instruction_pass_one(char* line, int line_number,int skip_chars);
+const OpcodeTableEntry* get_opcode(const char* line, int skip_chars) {
+	char instruction[MAX_LABEL_LENGTH];
+	if (!parse_instruction(line, instruction, skip_chars)) {
+		// No instruction found
+		return NULL;
+	}
+
+	const OpcodeTableEntry* opcode_entry = opcode_table_lookup(instruction);
+	if (opcode_entry == NULL) {
+		// Opcode not found in the table
+		printf("Error: invalid opcode '%s'\n", instruction);
+		return NULL;
+	}
+
+	return opcode_entry;
+}
 bool first_pass(const char* base_input_filename) {
 	init_global_state(global_state);
 	char am_filename[MAX_FILENAME_LENGTH];
@@ -29,7 +48,7 @@ bool first_pass(const char* base_input_filename) {
 	while (fgets(line, sizeof(line), file)) {
 		/* Remove trailing newline character*/
 		strtok(line, "\n");
-		if (!process_line_first_pass(line,line_number)) {
+		if (!process_line_first_pass(line, line_number)) {
 			fprintf(stderr, "Error: Syntax error at line %d\n", line_number);
 			success = false;
 		}
@@ -50,7 +69,7 @@ bool process_instruction(const char* instruction, int line_number, int* instruct
 		OpcodeTableEntry* entry = opcode_table_lookup(opcode);
 		if (entry != NULL) {
 			// Set the opcode and operands in the instruction structure.
-			instr.opcode = entry->opcode;
+			instr.mnemonic = entry->mnemonic;
 			strncpy(instr.operands, operands, MAX_OPERANDS_LENGTH);
 			instr.operands[MAX_OPERANDS_LENGTH] = '\0';
 
@@ -73,10 +92,9 @@ bool is_line_contains_word(const char* line, const char* word) {
 	return (result != NULL);
 }
 
-
-bool process_line_first_pass(const char* line,int line_number) {
+bool process_line_first_pass(const char* line, int line_number) {
 	/* Variables for line processing*/
-	char symbol[MAX_LABEL_LENGTH],
+	char label[MAX_LABEL_LENGTH],
 		opcode[MAX_OPCODE_LENGTH],
 		operands[MAX_OPERANDS_LENGTH];
 	bool has_label;
@@ -85,56 +103,68 @@ bool process_line_first_pass(const char* line,int line_number) {
 		return true;
 	}
 	/* Check for labels, add them to the symbol table if found*/
-	has_label = parse_label(line, symbol);
+	has_label = parse_label(line, label);
 	if (is_line_contains_word(line, STRING_DIRECTIVE) ||
 		is_line_contains_word(line, DATA_DIRECTIVE))
 	{
 		if (has_label) {
-			if (!add_to_symbol_table(symbol,global_state.data_counter, true, true)) {
-				printf("Error: Symbol %s already defined\n", symbol);
+			if (!add_to_symbol_table(label, global_state.data_counter, true, true, DATA_DIRECTIVE)) {
+				printf("Error: Symbol %s already defined\n", label);
 				return false;
 			}
-
-			// Update data counter according to data or string length
-			int data_length = process_data_or_string(line);
-			global_state.data_counter += data_length;
 		}
+		// Update data counter according to data or string length
+		int data_length = process_data_or_string(line);
+		global_state.data_counter += data_length;
+		return true;
 	}
-	// Check for extern directive
+	/*Check for extern directive*/
 	if (is_line_contains_word(line, EXTERN_DIRECTIVE)) {
-		// Insert symbol into symbol table with external flag and no value
-		char* operand = get_operand(line);
-		if (!add_to_symbol_table(operand, 0, false, false)) {
-			printf("Error: Symbol %s already defined\n", operand);
+		/* Insert symbol into symbol table with external flag and no value*/
+		//char* operand = get_operand(line);
+		if (!handle_operands(line, EXTERN_DIRECTIVE, false)) {
+			printf("Error: Symbol %s already defined\n", ENTRY_DIRECTIVE);
 			return false;
 		}
+		return true;
 	}
 	// Check for entry directive
 	if (is_line_contains_word(line, ENTRY_DIRECTIVE)) {
 		// Insert symbol into symbol table with entry flag and no value
-		char* operand = get_operand(line);
-		if (!add_to_symbol_table(operand, 0, true, false)) {
-			printf("Error: Symbol %s already defined\n", operand);
+
+		if (!handle_operands(line, ENTRY_DIRECTIVE, true)) {
+			printf("Error: Symbol %s already defined\n", ENTRY_DIRECTIVE);
+			return false;
+		}
+		return true;
+	}
+	if (has_label)
+	{
+		if (!add_to_symbol_table(label, global_state.instruction_counter
+			, true, true,"code")) {
+			printf("Error: Symbol %s already defined\n", label);
 			return false;
 		}
 	}
+	int skip_chars = strlen(label)+1;
+	if (!handle_instruction_pass_one(line,line_number,skip_chars))
+		return false;
 	//if (is_line_contains_opcode(line)) {
-	//	int operand_length = process_instruction(line,line_number,global_state.instruction_counter);
-	//	int instruction_length = 1; // Start with opcode length of 1 word
+	//	int operand_length = process_instruction(line, line_number, global_state.instruction_counter);
+	//	int instruction_length = 1; // start with opcode length of 1 word
 
-	//	if (operand_length > 0) { // Check if instruction has operands
-	//		instruction_length++; // Add 1 word for the first operand
-	//		if (operand_length > 1) { // Check if instruction has a second operand
-	//			instruction_length++; // Add 1 word for the second operand
-	//			if (is_addressing_mode_relative(line)) { // Check if the instruction has relative addressing mode
-	//				instruction_length++; // Add 1 word for the relative addressing mode
+	//	if (operand_length > 0) { // check if instruction has operands
+	//		instruction_length++; // add 1 word for the first operand
+	//		if (operand_length > 1) { // check if instruction has a second operand
+	//			instruction_length++; // add 1 word for the second operand
+	//			if (is_addressing_mode_relative(line)) { // check if the instruction has relative addressing mode
+	//				instruction_length++; // add 1 word for the relative addressing mode
 	//			}
 	//		}
 	//	}
-	//	// Update instruction counter with instruction length
+	//	// update instruction counter with instruction length
 	//	global_state.instruction_counter += instruction_length;
 	//}
-	//return true;
 	// Parse the instruction, identify opcode and operands
 	//if (!parse_instruction(line, opcode, operands, has_label)) {
 	//    printf("Error: Failed to parse instruction on line: %s\n", line);
@@ -149,6 +179,61 @@ bool process_line_first_pass(const char* line,int line_number) {
 
 	// Return true if the line processing is successful
 	return true;
+}
+bool handle_instruction_pass_one(char* line, int line_number,int skip_chars) {
+	char opcode[MAX_OPCODE_LENGTH];
+	if (get_opcode(line,skip_chars)) { // get the opcode from the instruction
+			int operand_length = process_instruction(line, line_number, global_state.instruction_counter);
+			int instruction_length = 1; // start with opcode length of 1 word
+
+			if (operand_length > 0) { // check if instruction has operands
+				instruction_length++; // add 1 word for the first operand
+				if (operand_length > 1) { // check if instruction has a second operand
+					instruction_length++; // add 1 word for the second operand
+					if (is_addressing_mode_relative(line)) { // check if the instruction has relative addressing mode
+						instruction_length++; // add 1 word for the relative addressing mode
+					}
+				}
+			
+
+			// update instruction counter with instruction length
+			global_state.instruction_counter += instruction_length;
+			return true; // instruction processed successfully
+		}
+		else {
+			// opcode is not valid, report error
+			printf("Error at line %d: Invalid opcode '%s'\n", line_number, opcode);
+			return false;
+		}
+	}
+	// line does not contain opcode, skip
+	return true;
+}
+bool handle_operands(char* line, const char* directive, bool is_relo) {
+	// Find the directive in the line
+	char* ptr = line + strlen(directive);
+	char operand[MAX_OPERANDS_LENGTH];
+	int counter;
+	while (ptr != line + strlen(line))
+	{
+		counter = 0;
+		while (*ptr == ' ' || *ptr == '\t') {
+			ptr++;
+		}
+		while (isalpha(*ptr) || isdigit(*ptr))
+		{
+			operand[counter++] = *ptr;
+			ptr++;
+		}
+		operand[counter] = '\0';
+		add_to_symbol_table(operand, 0, is_relo, false, directive);
+
+	}
+	// Skip the directive and any whitespace
+
+
+	// Update the line pointer to point to the beginning of the operands
+	//line = ptr;
 }
 /* Check if the given line contains an opcode */
 bool is_line_contains_opcode(const char* line) {
@@ -165,23 +250,17 @@ bool is_line_contains_opcode(const char* line) {
 }
 /* Process a data or string directive from the given line and return the number of words it occupies */
 int process_data_or_string(const char* line) {
-	char directive[MAX_DIRECTIVE_LENGTH + 1];
+	char directive[MAX_LABEL_LENGTH + 1];
 	char* ptr = line;
-
+	int chars_before_directive_counter = 0;
 	// Parse the directive from the line
-	if (!parse_directive(line, directive)) {
+	if (!parse_directive(line, directive, &chars_before_directive_counter)) {
 		printf("Error: Invalid directive\n");
 		return 0;
 	}
 
 	// Move the pointer after the directive name
-	ptr += strlen(directive);
-
-	// Skip white spaces
-	while (isspace(*ptr)) {
-		ptr++;
-	}
-
+	ptr += chars_before_directive_counter;
 	// Check if this is a .data directive
 	if (strcmp(directive, DATA_DIRECTIVE) == 0) {
 		char* endptr;
@@ -210,7 +289,9 @@ int process_data_or_string(const char* line) {
 
 		return data_word_count;
 	}
-
+	while (isspace(*ptr)) {
+		ptr++;
+	}
 	// Check if this is a .string directive
 	if (strcmp(directive, STRING_DIRECTIVE) == 0) {
 		if (*ptr != '\"') {
@@ -239,10 +320,9 @@ int process_data_or_string(const char* line) {
 			return 0;
 		}
 
-		// Add the terminating null character to the string
+		/*Add the terminating null character to the string*/
 		global_state.data_image[global_state.data_counter++] = '\0';
 		str_length++;
-
 		return str_length;
 	}
 
@@ -283,4 +363,25 @@ bool parse_opcode(const char* line, char* opcode) {
 	}
 
 	return false;
+}
+/* Parse the directive from the given line */
+bool parse_directive(const char* line, char* directive, int* chars_before_directive_counter) {
+	int i = 0;
+	int j = 0;
+	// Check for a dot at the beginning of the line
+	while (line[i] != '.' && i < strlen(line))
+		i++;
+	if (i == strlen(line))
+		return false;
+	directive[j] = '.';
+	j++; i++;
+	// Copy the directive into the output string
+	while (isalpha(line[i]) && line[i] != ' ' && i < MAX_LABEL_LENGTH) {
+		directive[j] = line[i];
+		i++; j++;
+	}
+
+	directive[j] = '\0';
+	*chars_before_directive_counter = i;
+
 }

@@ -3,10 +3,24 @@
 #include <string.h>
 #include "utilities.h"
 #include "opcode_table.h"
+
 OpcodeTableEntry opcode_table[] = {
-    {"ACTUAL_OPCODE1", 1},
-    {"ACTUAL_OPCODE2", 2},
-    // Add more opcodes here
+    {"lea", 0, 2},
+    {"sub", 1, 2},
+    {"add", 2, 2},
+    {"cmp", 3, 2},
+    {"mov", 4, 2},
+    {"not", 5, 1},
+    {"clr", 6, 1},
+    {"inc", 7, 1},
+    {"dec", 8, 1},
+    {"jmp", 9, 1},
+    {"bne", 10, 1},
+    {"red", 11, 1},
+    {"prn", 12, 1},
+    {"jsr", 13, 1},
+    {"rts", 14, 0},
+    {"stop", 15, 0}
 };
 void init_global_state(AssemblerState global_state)
 {
@@ -108,12 +122,12 @@ bool parse_label(const char* line, char* label) {
     return true;
 }
 /* Parses an instruction from a given line */
-bool parse_instruction(const char* line, char* instruction) {
+bool parse_instruction(const char* line, char* instruction,int skip_chars) {
     const char* start = NULL;
     const char* end = NULL;
 
     /* Find the start and end of the instruction */
-    for (const char* ptr = line; *ptr != '\0'; ptr++) {
+    for (const char* ptr = line+(skip_chars*sizeof(char)); *ptr != '\0'; ptr++) {
         if (!isspace((unsigned char)*ptr)) {
             if (start == NULL) {
                 start = ptr;
@@ -136,10 +150,10 @@ bool parse_instruction(const char* line, char* instruction) {
         return false;
     }
 }
-const OpcodeTableEntry* opcode_table_lookup(const char* opcode) {
+const OpcodeTableEntry* opcode_table_lookup(const char* opcode_name) {
     int i;
     for (i = 0; i < sizeof(opcode_table) / sizeof(OpcodeTableEntry); i++) {
-        if (strcmp(opcode_table[i].opcode, opcode) == 0) {
+        if (strcmp(opcode_table[i].mnemonic, opcode_name) == 0) {
             return &opcode_table[i];
         }
     }

@@ -33,7 +33,7 @@ void free_split_string(char** str_array, int count);
 /* Function to parse a label from a line of assembly code */
 bool parse_label(const char* line, char* label);
 /* Parses an instruction from a given line */
-bool parse_instruction(const char* line, char* instruction);
+bool parse_instruction(const char* line, char* instruction,int skip_chars);
 
 const OpcodeTableEntry* opcode_table_lookup(const char* opcode);
 
