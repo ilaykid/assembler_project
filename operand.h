@@ -8,6 +8,7 @@ typedef struct {
     int address;
     int addressing_method;
 } Operand;
+bool is_jump_opcode(char* mnemonic_name);
 void free_operands(Operand* operands, int num_operands);
 //Operand create_operand(int value, int address, int addressing_method);
 bool is_valid_register(const char* reg);

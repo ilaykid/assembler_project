@@ -5,6 +5,7 @@
 #include "utilities.h"
 #include "operand.h"
 bool insert_entry(char* line);
+void handle_jump_line(char  instruction_binary[15], char  address[13], Operand  operands[3], char  era_method[3], int line_num);
 int second_pass(const char* base_input_filename) {
 	// Initialize variables
 	int error_count = 0;
@@ -65,21 +66,58 @@ int second_pass(const char* base_input_filename) {
 		int operands_num = handle_and_count_operands(orig_line, line_num
 			, global_state.instruction_counter, opcode_entry->mnemonic, operands);
 		int instruction_length = 1 + operands_num;
-		for (int i = 0; i < operands_num; i++)
+		if (is_jump_opcode(opcode_entry->mnemonic))
+		{
+			/*first operand - label*/
+			char era_method[ERA_BITS + 1];
+			char address[ADDRESS_BITS + 1];
+			char instruction_binary[WORD_SIZE + 1]; //= malloc((WORD_SIZE + 1) * sizeof(char));
+			instruction_binary[0] = 0;
+			strcpy(address, encode_unique_base_2(operands[0].value, ADDRESS_BITS));
+			strcpy(era_method, EXTERNAL_ENCODING);
+			strcat(instruction_binary, address);
+			strcat(instruction_binary, era_method);
+			instruction_binary[WORD_SIZE] = '\0';
+			global_state.code_image.code_line[((line_num - 1) * 4) + 1] = instruction_binary;
+			if (operands_num > 2)
+			{
+				if (operands[1].addressing_method == DIRECT &&/*merge two registers into one line*/
+					operands[2].addressing_method == DIRECT)
+				{
+
+				}
+				else
+				{
+					/*first reg*/
+					handle_jump_line(instruction_binary, address, operands, era_method, line_num,1);
+					/*second reg*/
+					handle_jump_line(instruction_binary, address, operands, era_method, line_num,2);
+
+				}
+			}
+		}
+		else for (int i = 0; i < operands_num; i++)
 		{
 			char era_method[ERA_BITS + 1];
-			char address[IMMEDIATE_BITS + 1];
-			char* instruction_binary = malloc((WORD_SIZE + 1) * sizeof(char));
-			strcpy(instruction_binary, "");
+			char address[ADDRESS_BITS + 1];
+			char instruction_binary[WORD_SIZE + 1]; //= malloc((WORD_SIZE + 1) * sizeof(char));
+			instruction_binary[0] = 0;
 			Operand this_op = operands[i];
 			if (this_op.addressing_method == IMMEDIATE)
 			{
-				strcpy(address, encode_unique_base_2(this_op.value, IMMEDIATE_BITS));
+				strcpy(address, encode_unique_base_2(this_op.value, ADDRESS_BITS));
 				strcpy(era_method, ABSOLUTE_ENCODING);
 				strcat(instruction_binary, address);
 				strcat(instruction_binary, era_method);
 			}
-
+			else if (this_op.addressing_method == DIRECT)
+			{
+				strcpy(era_method, RELOCATABLE_ENCODING);
+				strcpy(address, encode_unique_base_2(this_op.value, ADDRESS_BITS));
+				strcat(instruction_binary, address);
+				strcat(instruction_binary, era_method);
+			}
+			instruction_binary[WORD_SIZE] = '\0';
 			global_state.code_image.code_line[((line_num - 1) * 4) + i + 1] = instruction_binary;
 		}
 		global_state.instruction_counter += instruction_length;
@@ -87,6 +125,17 @@ int second_pass(const char* base_input_filename) {
 	// Close input and output files
 	fclose(input_file);
 	return error_count == 0; // Return success if there were no errors
+}
+void handle_jump_line(char instruction_binary[WORD_SIZE+1], char  address[ADDRESS_BITS+1]
+	, Operand  operands[MAX_OPERANDS], char  era_method[ERA_BITS+1], int line_num,int idx_operand)
+{
+	instruction_binary[0] = 0;
+	strcpy(address, encode_unique_base_2(operands[idx_operand].value, ADDRESS_BITS));
+	strcpy(era_method, EXTERNAL_ENCODING);
+	strcat(instruction_binary, address);
+	strcat(instruction_binary, era_method);
+	instruction_binary[WORD_SIZE] = '\0';
+	global_state.code_image.code_line[((line_num - 1) * 4) + idx_operand+1] = instruction_binary;
 }
 bool insert_entry(char* label) {
 	/* Find the directive in the line */

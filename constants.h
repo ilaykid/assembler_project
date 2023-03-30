@@ -44,7 +44,7 @@
 #define OPERAND_ADDR_BITS 2
 #define OPCODE_BITS 4
 #define PARAM_BITS 2
-#define IMMEDIATE_BITS 12
+#define ADDRESS_BITS 12
 
 
 /* Encoding constants */

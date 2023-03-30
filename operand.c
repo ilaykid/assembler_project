@@ -72,8 +72,14 @@ bool get_operand_object(const char* operand_str, Operand* operand,bool is_jump) 
     else if(!is_jump)//if (is_valid_label(operand_str)) 
     {
         operand->addressing_method = DIRECT;
+        SymbolTableEntry* symbol = get_symbol(operand_str);
+        if (symbol==NULL)
+            return true;
+        else
+        {
+            operand->value = symbol->address;
+        }
         //strncpy(operand->value, operand_str, MAX_LABEL_LENGTH);
-        return true;
     }
     else
     {
@@ -115,13 +121,19 @@ bool is_valid_register(const char* reg) {
     }
     return false;
 }
+bool is_jump_opcode(char* mnemonic_name)
+{
+    return !strcmp(mnemonic_name, "jmp") || 
+        !strcmp(mnemonic_name, "bne") || 
+        !strcmp(mnemonic_name, "jsr");
+}
 /* Process an instruction from the given line */
 int handle_and_count_operands(const char* line, int line_number,
     int* instruction_counter, char* mnemonic_name, Operand operands[]) {
     char instruction[MAX_LINE_LENGTH + 1];
     strncpy(instruction, line, MAX_LINE_LENGTH);
     bool is_jump = false;
-    if (!strcmp(mnemonic_name, "jmp")|| !strcmp(mnemonic_name, "bne")|| !strcmp(mnemonic_name, "jsr"))
+    if (is_jump_opcode(mnemonic_name))
         is_jump = true;
     //trim_whitespace(instruction);
 
