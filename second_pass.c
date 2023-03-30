@@ -1,56 +1,108 @@
-#include "second_pass.h"
-#include "symbol_table.h"
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include <stdbool.h>
-bool process_instruction_second_pass(const char* opcode, const char* operands);
+#include "symbol_table.h"
+#include "utilities.h"
+#include "operand.h"
+bool insert_entry(char* line);
+int second_pass(const char* base_input_filename) {
+	// Initialize variables
+	int error_count = 0;
+	int IC = 0; // Initialize IC to 0
+	int line_num = 0;
+	char line[MAX_LINE_LENGTH];
+	char* tokens[MAX_LINE_WORDS_COUNT];
+	char am_filename[MAX_FILENAME_LENGTH];
 
-int second_pass(const char* input_file, const char* output_file) {
-    // TODO: Add your second pass processing logic here
+	global_state.instruction_counter = 0;
+	sprintf(am_filename, "%s.am", base_input_filename);
+	// Open input file
+	FILE* input_file = fopen(am_filename, "r");
+	if (input_file == NULL) {
+		printf("Error: Failed to open input file: %s\n", am_filename);
+		return 0;
+	}
+	// Read input file line by line
+	while (fgets(line, MAX_LINE_LENGTH, input_file)) {
+		line_num++;
+		trim_whitespace(line);
+		char* orig_line="";
+		strcpy(orig_line, line);
+		// Split line into tokens
+		int num_tokens = split_line(line, tokens);
+		int skip_chars = 0;
+		// Skip empty lines and comments
+		if (num_tokens == 0 || tokens[0][0] == ';') {
+			continue;
+		}
+		if (tokens[0][strlen(tokens[0]) - 1] == ':') {
+			tokens[0][strlen(tokens[0]) - 1] = '\0';
+		}
+		// Check if line contains a symbol
 
-    // Return 0 for success
-    return 0;
+		if (is_valid_label(tokens[0])) {
+			skip_chars = strlen(tokens[0]) + 2;
+			// Skip symbol and process instruction/directive
+			num_tokens--;
+			memmove(tokens, tokens + 1, num_tokens * sizeof(char*));
+		}
+		/* Check if line is a directive that we skip in the second pass*/
+		if (is_line_contains_word(line, STRING_DIRECTIVE) ||
+			is_line_contains_word(line, DATA_DIRECTIVE) ||
+			is_line_contains_word(line, EXTERN_DIRECTIVE))
+			continue;
+		else if (is_line_contains_word(line, ENTRY_DIRECTIVE)) {
+			/* Insert symbol into symbol table with entry flag and no value*/
+			if (!insert_entry(tokens[1])) {
+				printf("Error: Symbol %s already defined\n", ENTRY_DIRECTIVE);
+			}
+			continue;
+		}
+
+		OpcodeTableEntry* opcode_entry = get_opcode(orig_line, skip_chars);
+		Operand operands[MAX_OPERANDS];
+		orig_line= orig_line + skip_chars;
+		int operands_num = handle_and_count_operands(orig_line, line_num
+			, global_state.instruction_counter, opcode_entry->mnemonic, operands);
+		int instruction_length = 1 + operands_num;
+		for (int i = 0; i < operands_num; i++)
+		{
+			char era_method[ERA_BITS + 1];
+			char address[IMMEDIATE_BITS + 1];
+			char* instruction_binary = malloc((WORD_SIZE + 1) * sizeof(char));
+			strcpy(instruction_binary, "");
+			Operand this_op = operands[i];
+			if (this_op.addressing_method == IMMEDIATE)
+			{
+				strcpy(address, encode_unique_base_2(this_op.value, IMMEDIATE_BITS));
+				strcpy(era_method, ABSOLUTE_ENCODING);
+				strcat(instruction_binary, address);
+				strcat(instruction_binary, era_method);
+			}
+
+			global_state.code_image.code_line[((line_num - 1) * 4) + i + 1] = instruction_binary;
+		}
+		global_state.instruction_counter += instruction_length;
+	}
+	// Close input and output files
+	fclose(input_file);
+	return error_count == 0; // Return success if there were no errors
 }
-bool process_line_second_pass(const char* line) {
-    // Variables for line processing
-    char label[MAX_LABEL_LENGTH], opcode[MAX_OPCODE_LENGTH], operands[MAX_OPERANDS_LENGTH];
-    bool has_label;
-
-    // Remove leading and trailing whitespace from the line
-    // ...
-
-    // Check for comments or empty lines and ignore them
-    if (line[0] == ';' || line[0] == '\0') {
-        return true;
-    }
-
-    // Check for labels
-    has_label = parse_label(line, label);
-
-    // Parse the instruction, identify opcode and operands
-    if (!parse_instruction(line, opcode, operands, has_label)) {
-        printf("Error: Failed to parse instruction on line: %s\n", line);
-        return false;
-    }
-
-    // Process the instruction and generate machine code
-
-    //if (!process_instruction_second_pass(opcode, operands)) {
-    //    printf("Error: Failed to process instruction on line: %s\n", line);
-    //    return false;
-    //}
-
-    // Return true if the line processing is successful
-    return true;
+bool insert_entry(char* label) {
+	/* Find the directive in the line */
+	char* ptr = label + strlen(ENTRY_DIRECTIVE);
+	SymbolTableEntry* entry = get_symbol(label);
+	if (entry == NULL) return false;
+	add_to_symbol_table(label, entry->address, entry->relocatable
+		, false, ENTRY_DIRECTIVE);
+	return true;
 }
-
-bool process_instruction_second_pass(const char* opcode, const char* operands) {
-    // TODO: Add the implementation for processing instructions during the second pass
-
-    // For demonstration purposes, the following implementation will return true.
-    // You will need to replace this with your own logic for processing instructions during the second pass.
-    (void)opcode; // To avoid unused parameter warnings
-    (void)operands; // To avoid unused parameter warnings
-
-    return true; // Return true if successful, false otherwise
+int split_line(char* line, char** tokens) {
+	int num_tokens = 0;
+	char* token = strtok(line, " \t\n");
+	while (token != NULL && num_tokens < MAX_LINE_WORDS_COUNT) {
+		tokens[num_tokens++] = token;
+		token = strtok(NULL, " \t\n");
+	}
+	return num_tokens;
 }

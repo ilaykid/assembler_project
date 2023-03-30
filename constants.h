@@ -5,6 +5,7 @@
 
 /* Maximum length of a line in the input file */
 #define MAX_LINE_LENGTH 256
+#define MAX_LINE_WORDS_COUNT 6
 /* Maximum length of a label in the input file */
 #define MAX_LABEL_LENGTH 16
 /* Maximum number of macros in the input file */
@@ -18,7 +19,7 @@
 #define MAX_FILENAME_LENGTH 128
 
 /* Maximum number of operands for an instruction */
-#define MAX_OPERANDS 2
+#define MAX_OPERANDS 3
 
 /* Maximum size of the code array */
 #define MAX_CODE_ARRAY_SIZE 4096
@@ -39,33 +40,21 @@
 
 #define WORD_SIZE 14
 /* Varibles and masks for encode instuctions */
-#define OPCODE_SHIFT 6
-#define OPCODE_MASK 0xF
-#define SRC_ADDR_SHIFT 4
-#define DST_ADDR_SHIFT 2
-#define ADDR_METHOD_MASK 0x3
-#define PARAM1_SHIFT 12
-#define PARAM2_SHIFT 10
-#define PARAM_MASK 0x3
-#define ENCODING_TYPE_MASK 0x3
+#define ERA_BITS 2
+#define OPERAND_ADDR_BITS 2
+#define OPCODE_BITS 4
+#define PARAM_BITS 2
+#define IMMEDIATE_BITS 12
 
-#define ZERO_FLAG_MASK 0x1
-#define SP_REG 6
 
 /* Encoding constants */
-#define ABSOLUTE_ENCODING 0
-#define RELOCATABLE_ENCODING 2
-#define EXTERNAL_ENCODING 1
-#define ARE_SHIFT 10
+#define ABSOLUTE_ENCODING ".."
+#define RELOCATABLE_ENCODING "./"
+#define EXTERNAL_ENCODING "/."
 
-/* Addressing method constants */
-#define MAX_IMMEDIATE_VALUE 0x7FF
-#define SIGN_BIT_IMMEDIATE 0x800
-#define SIGN_EXTEND_IMMEDIATE 0xFFFFF000
-#define MAX_DIRECT_ADDRESS 0xFFF
-#define MAX_REGISTER_NUM 7
-#define SRC_REG_SHIFT 8
-#define DEST_REG_SHIFT 2
+
+#define MAX_REGISTER_NUM 8
+
 
 #define DIRECT 0
 #define IMMEDIATE 1

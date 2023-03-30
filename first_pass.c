@@ -1,4 +1,4 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include "first_pass.h"
@@ -9,30 +9,13 @@
 #include "utilities.h"
 #include "operand.h"
 AssemblerState global_state;
-bool handle_operands(char* line, const char* directive);
-bool parse_directive(const char* line, char* directive);
+bool handle_operands(char* line, const char* directive, bool is_relo);
+char* build_first_word_binary(OpcodeTableEntry* opcode_entry, int operands_num, Operand  operands[3], int line_number);
+bool parse_directive(const char* line, char* directive, int* chars_before_directive_counter);
 bool parse_opcode(const char* line, char* opcode);
-bool is_addressing_mode_relative(const char* instruction);
-bool process_line_first_pass(const char* line);
+bool process_line_first_pass(const char* line, int line_number);
 bool is_line_contains_opcode(const char* line);
 
-//bool handle_code_instruction(char* line, int line_number,int skip_chars);
-const OpcodeTableEntry* get_opcode(const char* line, int skip_chars) {
-	char instruction[MAX_LABEL_LENGTH];
-	if (!parse_instruction(line, instruction, skip_chars)) {
-		// No instruction found
-		return NULL;
-	}
-
-	const OpcodeTableEntry* opcode_entry = opcode_table_lookup(instruction);
-	if (opcode_entry == NULL) {
-		// Opcode not found in the table
-		printf("Error: invalid opcode '%s'\n", instruction);
-		return NULL;
-	}
-
-	return opcode_entry;
-}
 bool first_pass(const char* base_input_filename) {
 	init_global_state(global_state);
 	char am_filename[MAX_FILENAME_LENGTH];
@@ -58,71 +41,13 @@ bool first_pass(const char* base_input_filename) {
 	fclose(file);
 	return success;
 }
-/* Process an instruction from the given line */
-bool process_instruction(const char* line, int line_number, 
-	int* instruction_counter,char* mnemonic_name) {
-	char instruction[MAX_LINE_LENGTH + 1];
-	strncpy(instruction, line, MAX_LINE_LENGTH);
-	trim_whitespace(instruction);
-
-	// Get the operand string and parse it into operand objects
-	char* operand_string = get_operands_string(instruction, mnemonic_name);
-	int num_operands = 0;
-	Operand operands[MAX_OPERANDS];
-	if (operand_string != NULL) {
-		char** operand_strings = split_string(operand_string, ",", &num_operands);
-		for (int i = 0; i < num_operands; i++) {
-			if (!get_operand_object(operand_strings[i], &operands[i])) {
-				printf("Error at line %d: Failed to parse operand %d\n", line_number, i + 1);
-				exit(1);
-			}
-		}
-		free_split_string(operand_strings, num_operands);
-	}
-	free(operand_string);
-
-	// TODO: process the operands as needed
-
-	return true;
-	//char opcode[MAX_OPCODE_LENGTH + 1];
-	//char operands[MAX_OPERANDS_LENGTH + 1];
-	//Instruction instr;
-
-	//// Parse the instruction to get the opcode and operands.
-	//if (parse_instruction(instruction, opcode, operands)) {
-	//	// Look up the opcode in the opcode table.
-	//	OpcodeTableEntry* entry = opcode_table_lookup(opcode);
-	//	if (entry != NULL) {
-	//		// Set the opcode and operands in the instruction structure.
-	//		instr.mnemonic = entry->mnemonic;
-	//		strncpy(instr.operands, operands, MAX_OPERANDS_LENGTH);
-	//		instr.operands[MAX_OPERANDS_LENGTH] = '\0';
-
-	//		// Update the instruction counter based on the number of words the instruction takes.
-	//		*instruction_counter += entry->num_words;
-	//	}
-	//	else {
-	//		printf("Error: Unknown opcode '%s' at line %d\n", opcode, line_number);
-	//		return false;
-	//	}
-	//}
-	//else {
-	//	printf("Error: Failed to parse instruction at line %d\n", line_number);
-	//	return false;
-	//}
-	//return true;
-}
-bool is_line_contains_word(const char* line, const char* word) {
-	const char* result = strstr(line, word);
-	return (result != NULL);
-}
-
 bool process_line_first_pass(const char* line, int line_number) {
 	/* Variables for line processing*/
 	char label[MAX_LABEL_LENGTH],
 		opcode[MAX_OPCODE_LENGTH],
 		operands[MAX_OPERANDS_LENGTH];
 	bool has_label;
+	int skip_chars = 0;
 	/* Check for comments or empty lines and ignore them*/
 	if (line[0] == ';' || line[0] == '\0') {
 		return true;
@@ -133,7 +58,8 @@ bool process_line_first_pass(const char* line, int line_number) {
 		is_line_contains_word(line, DATA_DIRECTIVE))
 	{
 		if (has_label) {
-			if (!add_to_symbol_table(label, global_state.data_counter, true, true, DATA_DIRECTIVE)) {
+			if (!add_to_symbol_table(label, global_state.data_counter,
+				true, true, DATA_DIRECTIVE)) {
 				printf("Error: Symbol %s already defined\n", label);
 				return false;
 			}
@@ -153,124 +79,121 @@ bool process_line_first_pass(const char* line, int line_number) {
 		return true;
 	}
 	// Check for entry directive
-	if (is_line_contains_word(line, ENTRY_DIRECTIVE)) {
-		// Insert symbol into symbol table with entry flag and no value
-
-		if (!handle_operands(line, ENTRY_DIRECTIVE, true)) {
-			printf("Error: Symbol %s already defined\n", ENTRY_DIRECTIVE);
-			return false;
-		}
+	if (is_line_contains_word(line, ENTRY_DIRECTIVE)) //handle it on second pass
 		return true;
-	}
 	if (has_label)
 	{
+		skip_chars = strlen(label) + 2; /* 2 for ": "*/
+
 		if (!add_to_symbol_table(label, global_state.instruction_counter
-			, true, true,"code")) {
+			, true, true, "code")) {
 			printf("Error: Symbol %s already defined\n", label);
 			return false;
 		}
 	}
-	int skip_chars = strlen(label)+1;
-	if (!calculate_instruction_length_and_update_IC(line,line_number,skip_chars))
-	//if (!handle_code_instruction(line,line_number,skip_chars))
+	if (!calculate_instruction_length_and_update_IC(line, line_number, skip_chars))
 		return false;
-	//if (is_line_contains_opcode(line)) {
-	//	int operand_length = process_instruction(line, line_number, global_state.instruction_counter);
-	//	int instruction_length = 1; // start with opcode length of 1 word
 
-	//	if (operand_length > 0) { // check if instruction has operands
-	//		instruction_length++; // add 1 word for the first operand
-	//		if (operand_length > 1) { // check if instruction has a second operand
-	//			instruction_length++; // add 1 word for the second operand
-	//			if (is_addressing_mode_relative(line)) { // check if the instruction has relative addressing mode
-	//				instruction_length++; // add 1 word for the relative addressing mode
-	//			}
-	//		}
-	//	}
-	//	// update instruction counter with instruction length
-	//	global_state.instruction_counter += instruction_length;
-	//}
-	// Parse the instruction, identify opcode and operands
-	//if (!parse_instruction(line, opcode, operands, has_label)) {
-	//    printf("Error: Failed to parse instruction on line: %s\n", line);
-	//    return false;
-	//}
-
-	//// Process the instruction and update the instruction counter
-	//if (!process_instruction(opcode, operands, &instruction_counter)) {
-	//    printf("Error: Failed to process instruction on line: %s\n", line);
-	//    return false;
-	//}
-
-	// Return true if the line processing is successful
+	add_ic_to_all_data(global_state.instruction_counter);
 	return true;
 }
-//bool handle_code_instruction(char* line, int line_number,int skip_chars) {
-//	OpcodeTableEntry* opcodeEntry = get_opcode(line, skip_chars);
-//	if (opcodeEntry->mnemonic != NULL) { // get the opcode from the instruction
-//			int operand_length = process_instruction(line, line_number,
-//				global_state.instruction_counter);
-//			int instruction_length = 1; // start with opcode length of 1 word
-//
-//			if (operand_length > 0) { // check if instruction has operands
-//				instruction_length++; // add 1 word for the first operand
-//				if (operand_length > 1) { // check if instruction has a second operand
-//					instruction_length++; // add 1 word for the second operand
-//					if (is_addressing_mode_relative(line)) { // check if the instruction has relative addressing mode
-//						instruction_length++; // add 1 word for the relative addressing mode
-//					}
-//				}
-//			// update instruction counter with instruction length
-//			global_state.instruction_counter += instruction_length;
-//			return true; // instruction processed successfully
-//		}
-//		else {
-//			// opcode is not valid, report error
-//			printf("Error at line %d: Invalid opcode '%s'\n", line_number, opcodeEntry->mnemonic);
-//			return false;
-//		}
-//	}
-//	// line does not contain opcode, skip
-//	return true;
-//}
 /* Calculate the length of the instruction and update the instruction counter */
-int calculate_instruction_length_and_update_IC(const char* line, int line_number,int skip_chars) {
+int calculate_instruction_length_and_update_IC(const char* line, int line_number, int skip_chars) {
 	OpcodeTableEntry* opcode_entry = get_opcode(line, skip_chars);
-	int operand_length = process_instruction(line, line_number
-		, global_state.instruction_counter,opcode_entry->mnemonic);
-	int instruction_length = 1; // start with opcode length of 1 word
-
-	if (operand_length > 0) { // check if instruction has operands
-		instruction_length++; // add 1 word for the first operand
-		if (operand_length > 1) { // check if instruction has a second operand
-			instruction_length++; // add 1 word for the second operand
-			if (is_addressing_mode_relative(line)) { // check if the instruction has relative addressing mode
-				instruction_length++; // add 1 word for the relative addressing mode
-			}
-		}
-	}
-
-	// update instruction counter with instruction length
+	Operand operands[MAX_OPERANDS];
+	line = line + skip_chars;
+	int operands_num = handle_and_count_operands(line, line_number
+		, global_state.instruction_counter, opcode_entry->mnemonic, operands);
+	int instruction_length = 1 + operands_num;
+	/* update instruction counter with instruction length*/
+	char* first_word_binary = build_first_word_binary(opcode_entry, operands_num, operands, line_number);
+	global_state.code_image.code_line[(line_number-1)*4] = first_word_binary;/*first code row for that row*/
 	global_state.instruction_counter += instruction_length;
-
-	// calculate the binary code of IC
-	int binary_IC = global_state.instruction_counter << 2; // shift by 2 bits to leave room for the ARE bits
-	//set_ARE_bits(&binary_IC, A, 1); // set the A bit to 1 for absolute addressing
-	//set_ARE_bits(&binary_IC, R, 0); // set the R bit to 0 for instruction counter
-	//set_ARE_bits(&binary_IC, E, 0); // set the E bit to 0 for current version of machine code
-
 	return instruction_length;
 }
-void set_ARE_bits(int* word, int bit, int value) {
-	if (value == 1) {
-		*word |= (1 << bit);
+char* build_first_word_binary(OpcodeTableEntry* opcode_entry, int operands_num, Operand  operands[3], int line_number)
+{
+	char era_method[ERA_BITS + 1];
+	char address_method_dest[OPERAND_ADDR_BITS + 1];
+	char address_method_source[OPERAND_ADDR_BITS + 1];
+	char opcode_binary[OPCODE_BITS + 1];
+	char param1[PARAM_BITS + 1];
+	char param2[PARAM_BITS + 1];
+	char* instruction_binary = malloc((WORD_SIZE + 1) * sizeof(char));
+	strcpy(instruction_binary, "");
+	//char t1[OPCODE_BITS] = ;
+	strcpy(era_method, ABSOLUTE_ENCODING);
+	strcpy(opcode_binary, encode_unique_base_2(opcode_entry->opcode_index, OPCODE_BITS));
+	fill_string_with_dots(param1, PARAM_BITS);
+	fill_string_with_dots(param2, PARAM_BITS);
+	switch (operands_num)
+	{
+	case 0: /* rts || stop */
+	{
+		fill_string_with_dots(address_method_dest, OPERAND_ADDR_BITS);
+		fill_string_with_dots(address_method_source, OPERAND_ADDR_BITS);
+		break;
 	}
-	else {
-		*word &= ~(1 << bit);
+	case 1: /* jump with only label || simple opcodes*/
+	{
+		fill_string_with_dots(address_method_source, OPERAND_ADDR_BITS);
+		strcpy(address_method_dest, encode_unique_base_2(operands[0].value, OPERAND_ADDR_BITS));
+		if (operands[0].addressing_method == DIRECT)
+		{
+			strcpy(era_method, RELOCATABLE_ENCODING);
+		}
+		else
+		{
+			strcpy(era_method, ABSOLUTE_ENCODING);
+		}
+		break;
 	}
+	case 2:
+	{
+		strcpy(address_method_dest, encode_unique_base_2(operands[0].value, OPERAND_ADDR_BITS));
+		strcpy(address_method_source, encode_unique_base_2(operands[1].value, OPERAND_ADDR_BITS));
+		if (operands[0].addressing_method == DIRECT ||
+			operands[1].addressing_method == DIRECT)
+			strcpy(era_method, RELOCATABLE_ENCODING);
+		else
+			strcpy(era_method, ABSOLUTE_ENCODING);
+		break;
+	}
+	case 3:/*jump with label and parameters*/
+	{
+		fill_string_with_dots(address_method_dest, OPERAND_ADDR_BITS);
+		fill_string_with_dots(address_method_source, OPERAND_ADDR_BITS);
+		strcpy(era_method, EXTERNAL_ENCODING);
+		strcpy(param1, encode_unique_base_2(operands[1].addressing_method, PARAM_BITS));
+		strcpy(param2, encode_unique_base_2(operands[2].addressing_method, PARAM_BITS));
+		break;
+	}
+	default:
+		printf("Error: problems with operands in line %d\n", line_number);
+		break;
+	}
+	if (operands[0].addressing_method != NULL)
+		strcpy(address_method_dest, encode_unique_base_2(operands[0].
+			addressing_method, OPERAND_ADDR_BITS));
+	else
+		strcpy(address_method_dest, "..");
+	param1[PARAM_BITS] = '\0';
+	param2[PARAM_BITS] = '\0';
+	opcode_binary[OPCODE_BITS] = '\0';
+	address_method_source[OPERAND_ADDR_BITS] = '\0';
+	address_method_dest[OPERAND_ADDR_BITS] = '\0';
+	era_method[ERA_BITS] = '\0';
+	strcat(instruction_binary, param1);
+	strcat(instruction_binary, param2);
+	strcat(instruction_binary, opcode_binary);
+	strcat(instruction_binary, address_method_source);
+	strcat(instruction_binary, address_method_dest);
+	strcat(instruction_binary, era_method);
+	instruction_binary[WORD_SIZE] = '\0';
+	return instruction_binary;
 }
 bool handle_operands(char* line, const char* directive, bool is_relo) {
-	// Find the directive in the line
+	/* Find the directive in the line */
 	char* ptr = line + strlen(directive);
 	char operand[MAX_OPERANDS_LENGTH];
 	int counter;
@@ -388,26 +311,6 @@ int process_data_or_string(const char* line) {
 
 	printf("Error: Invalid directive\n");
 	return 0;
-}
-bool is_addressing_mode_relative(const char* instruction) {
-	char opcode[MAX_OPCODE_LENGTH + 1];
-	char operands[MAX_OPERANDS_LENGTH + 1];
-
-	// Parse the instruction to get the opcode and operands
-	if (!parse_instruction(instruction, opcode, operands)) {
-		return false;
-	}
-
-	// Look up the opcode in the opcode table
-	OpcodeTableEntry* entry = opcode_table_lookup(opcode);
-	
-	if (entry == NULL) {
-		return false;
-	}
-
-	// Check if the opcode uses relative addressing mode
-	//return entry-> addressing_modes[0] == RELATIVE;
-	return false; //temmp
 }
 /* Parse the opcode from the given line */
 bool parse_opcode(const char* line, char* opcode) {

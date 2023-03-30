@@ -4,30 +4,16 @@
 #include "utilities.h"
 #include "opcode_table.h"
 
-OpcodeTableEntry opcode_table[] = {
-    {"lea", 0, 2},
-    {"sub", 1, 2},
-    {"add", 2, 2},
-    {"cmp", 3, 2},
-    {"mov", 4, 2},
-    {"not", 5, 1},
-    {"clr", 6, 1},
-    {"inc", 7, 1},
-    {"dec", 8, 1},
-    {"jmp", 9, 1},
-    {"bne", 10, 1},
-    {"red", 11, 1},
-    {"prn", 12, 1},
-    {"jsr", 13, 1},
-    {"rts", 14, 0},
-    {"stop", 15, 0}
-};
 void init_global_state(AssemblerState global_state)
 {
     global_state.instruction_counter = 0;
     global_state.data_counter = 0;
 }
 //AssemblerState global_state = { 0, 0, NULL };
+bool is_line_contains_word(const char* line, const char* word) {
+    const char* result = strstr(line, word);
+    return (result != NULL);
+}
 /* Function to remove whitespace from the beginning and end of a string */
 void trim_whitespace(char* str)
 {
@@ -110,15 +96,12 @@ bool parse_label(const char* line, char* label) {
     while (isalnum(*ptr) || *ptr == '_') {
         label[label_len++] = *ptr++;
     }
-
+    // Null-terminate the label
+    label[label_len] = '\0';
     // Check if the label is followed by a colon
     if (*ptr != ':') {
         return false;
     }
-
-    // Null-terminate the label
-    label[label_len] = '\0';
-
     return true;
 }
 /* Parses an instruction from a given line */
@@ -150,15 +133,7 @@ bool parse_instruction(const char* line, char* instruction,int skip_chars) {
         return false;
     }
 }
-const OpcodeTableEntry* opcode_table_lookup(const char* opcode_name) {
-    int i;
-    for (i = 0; i < sizeof(opcode_table) / sizeof(OpcodeTableEntry); i++) {
-        if (strcmp(opcode_table[i].mnemonic, opcode_name) == 0) {
-            return &opcode_table[i];
-        }
-    }
-    return NULL;
-}
+
 /* Function to perform two's complement addition */
 int twos_complement_add(int a, int b) {
     int result = a + b;
@@ -176,4 +151,68 @@ int twos_complement_subtract(int a, int b) {
 bool is_negative(int number) {
     int mask = 1 << (WORD_SIZE - 1); // Mask to check the most significant bit
     return (number & mask) != 0;
+}
+char* unique_binary_code(int decimal_num) {
+    char* binary_code = (char*)malloc((WORD_SIZE + 1) * sizeof(char));
+    if (binary_code == NULL) {
+        printf("Error: Failed to allocate memory for binary code\n");
+        exit(1);
+    }
+
+    // Calculate the binary representation of the absolute value
+    int abs_value = abs(decimal_num);
+    int remainder;
+    int i = WORD_SIZE - 1;
+    while (i >= 0) {
+        remainder = abs_value % 2;
+        binary_code[i] = (remainder == 0) ? '0' : '1';
+        abs_value /= 2;
+        i--;
+    }
+
+    // Check if the value is negative and apply two's complement if necessary
+    if (decimal_num < 0) {
+        // Flip all the bits
+        for (int j = 0; j < WORD_SIZE; j++) {
+            binary_code[j] = (binary_code[j] == '0') ? '1' : '0';
+        }
+        // Add 1 to the result
+        i = WORD_SIZE - 1;
+        while (i >= 0 && binary_code[i] == '1') {
+            binary_code[i] = '0';
+            i--;
+        }
+        if (i >= 0) {
+            binary_code[i] = '1';
+        }
+    }
+
+    binary_code[WORD_SIZE] = '\0';
+    return binary_code;
+}
+void fill_string_with_dots(char str[],int length)
+{
+    for (int i = 0; i < length; i++)
+        str[i] = '.';
+}
+char* encode_unique_base_2(int num, int count_bits) {
+    char* binary_str = unique_binary_code(num);
+    for (int i = 0; i < strlen(binary_str); i++)
+    {
+        if (binary_str[i] == '0')
+            binary_str[i] = '.';
+        else
+            binary_str[i] = '/';
+    }
+    int binary_len = strlen(binary_str);
+    if (binary_len > count_bits) {
+        char* result = (char*)malloc(sizeof(char) * (count_bits + 1));
+        strncpy(result, &binary_str[binary_len - count_bits], count_bits);
+        result[count_bits] = '\0';
+        free(binary_str);
+        return result;
+    }
+    else {
+        return binary_str;
+    }
 }

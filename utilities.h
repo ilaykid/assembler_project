@@ -5,7 +5,9 @@
 #include "symbol_table.h"
 #ifndef UTILITIES_H
 #define UTILITIES_H
-
+typedef struct {
+    unsigned char* code_line[MAX_CODE_ARRAY_SIZE];
+} CodeInsturctions;
 typedef struct {
     SymbolTableEntry* symbol_table;
     unsigned int instruction_counter;
@@ -14,15 +16,18 @@ typedef struct {
     unsigned int extern_counter;
     unsigned int code_length;
     unsigned int data_length;
-    unsigned int code_image[MAX_CODE_ARRAY_SIZE];
+    CodeInsturctions code_image;
     unsigned int data_image[MAX_DATA_ARRAY_SIZE];
 } AssemblerState;
 extern AssemblerState global_state;
 extern OpcodeTableEntry opcode_table[];
-
+bool is_line_contains_word(const char* line, const char* word);
+char* encode_unique_base_2(int num, int count_bits);
 void init_global_state(AssemblerState global_state);
 /* Function to remove whitespace from the beginning and end of a string */
 void trim_whitespace(char* str);
+
+void fill_string_with_dots(char str[], int length);
 
 /* Function to split a string using the specified delimiter */
 char** split_string(const char* str, const char* delimiter, int* count);

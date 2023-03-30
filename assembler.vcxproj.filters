@@ -7,9 +7,6 @@
     <ClCompile Include="C:\Users\Lavy\source\repos\‏‏Project-C-New-IlayKidron\first_pass.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\Lavy\source\repos\‏‏Project-C-New-IlayKidron\output_generator.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="C:\Users\Lavy\source\repos\‏‏Project-C-New-IlayKidron\second_pass.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -26,6 +23,7 @@
     <ClCompile Include="instructions.c" />
     <ClCompile Include="operand.c" />
     <ClCompile Include="preprocess.c" />
+    <ClCompile Include="opcode_table.c" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="C:\Users\Lavy\source\repos\‏‏Project-C-New-IlayKidron\CMakeLists.txt" />
