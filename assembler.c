@@ -2,9 +2,8 @@
 #include <stdlib.h>
 #include "first_pass.h"
 #include "second_pass.h"
-#include "output_generator.h"
 #include "utilities.h"
-
+#include "output_files.h"
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         printf("Usage: %s <assembly_file>\n", argv[0]);
@@ -30,11 +29,10 @@ int main(int argc, char* argv[]) {
             printf("Error: Second pass failed for file: %s\n", base_filename);
             continue;
         }
-
-        //// Generate output files
-        //if (!generate_output_files(base_filename)) {
-        //    printf("Error: Failed to generate output files for file: %s\n", base_filename);
-        //}
+        // Generate output files
+        if (!generate_output_files(base_filename)) {
+            printf("Error: Failed to generate output files for file: %s\n", base_filename);
+        }
         else {
             printf("Successfully processed file: %s\n", base_filename);
         }

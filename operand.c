@@ -123,6 +123,7 @@ bool is_valid_register(const char* reg) {
 }
 bool is_jump_opcode(char* mnemonic_name)
 {
+    if (mnemonic_name == NULL) return false;
     return !strcmp(mnemonic_name, "jmp") || 
         !strcmp(mnemonic_name, "bne") || 
         !strcmp(mnemonic_name, "jsr");

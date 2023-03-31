@@ -323,6 +323,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="instruction_structure.c" />
     <ClCompile Include="opcode_table.c" />
     <ClCompile Include="operand.c" />
+    <ClCompile Include="output_files.c" />
     <ClCompile Include="preprocess.c" />
   </ItemGroup>
   <ItemGroup>
@@ -332,6 +333,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="instruction_structure.h" />
     <ClInclude Include="opcode_table.h" />
     <ClInclude Include="operand.h" />
+    <ClInclude Include="output_files.h" />
     <ClInclude Include="preprocess.h" />
   </ItemGroup>
   <ItemGroup>

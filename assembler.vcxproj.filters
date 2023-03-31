@@ -24,6 +24,7 @@
     <ClCompile Include="operand.c" />
     <ClCompile Include="preprocess.c" />
     <ClCompile Include="opcode_table.c" />
+    <ClCompile Include="output_files.c" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="C:\Users\Lavy\source\repos\‏‏Project-C-New-IlayKidron\CMakeLists.txt" />
@@ -44,6 +45,7 @@
     <ClInclude Include="addressing_methods.h" />
     <ClInclude Include="operand.h" />
     <ClInclude Include="preprocess.h" />
+    <ClInclude Include="output_files.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TestWithMacro.as">
