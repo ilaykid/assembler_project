@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -std=c11
+CFLAGS = pedantic -ansi -Wall  
 TARGET = assembler
 SOURCES = main.c first_pass.c second_pass.c symbol_table.c utilities.c output_generator.c
 OBJECTS = $(SOURCES:.c=.o)
