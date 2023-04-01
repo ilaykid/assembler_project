@@ -16,11 +16,6 @@
     <ClCompile Include="C:\Users\Lavy\source\repos\‏‏Project-C-New-IlayKidron\utilities.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="instruction_structure.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="addressing_methods.c" />
-    <ClCompile Include="instructions.c" />
     <ClCompile Include="operand.c" />
     <ClCompile Include="preprocess.c" />
     <ClCompile Include="opcode_table.c" />
@@ -38,11 +33,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="instructions.h" />
     <ClInclude Include="opcode_table.h" />
-    <ClInclude Include="instruction_structure.h" />
     <ClInclude Include="action_codes.h" />
-    <ClInclude Include="addressing_methods.h" />
     <ClInclude Include="operand.h" />
     <ClInclude Include="preprocess.h" />
     <ClInclude Include="output_files.h" />

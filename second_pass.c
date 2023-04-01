@@ -172,6 +172,7 @@ bool insert_entry(char* label) {
 	if (entry == NULL) return false;
 	add_to_symbol_table(label, entry->address, entry->relocatable
 		, false, ENTRY_DIRECTIVE);
+	global_state.entry_counter++;
 	return true;
 }
 int split_line(char* line, char** tokens) {

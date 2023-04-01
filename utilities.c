@@ -4,10 +4,29 @@
 #include "utilities.h"
 #include "opcode_table.h"
 
-void init_global_state(AssemblerState global_state)
-{
+void init_global_state() {
     global_state.instruction_counter = 0;
     global_state.data_counter = 0;
+
+    SymbolTableEntry* curr_entry = global_state.symbol_table;
+    while (curr_entry != NULL) {
+        SymbolTableEntry* next_entry = curr_entry->next;
+        strncpy(curr_entry->symbol, "", MAX_SYMBOL_LENGTH);
+        curr_entry = next_entry;
+    }
+    global_state.symbol_table = NULL;
+    global_state.instruction_counter = 0;
+    global_state.data_counter = 0;
+    global_state.entry_counter = 0;
+    global_state.extern_counter = 0;
+    global_state.code_length = 0;
+    global_state.data_length = 0;
+    for (int i = 0; i < MAX_CODE_ARRAY_SIZE; i++) {
+        global_state.code_image.code_line[i] = NULL;
+        global_state.data_image.code_line[i] = NULL;
+    }
+    //memset(&global_state.code_image, 0, sizeof(global_state.code_image));
+    //memset(&global_state.data_image, 0, sizeof(global_state.data_image));
 }
 //AssemblerState global_state = { 0, 0, NULL };
 bool is_line_contains_word(const char* line, const char* word) {
@@ -216,3 +235,23 @@ char* encode_unique_base_2(int num, int count_bits) {
         return binary_str;
     }
 }
+
+//void free_instructions(Insturctions* instructions) {
+//    for (int i = 0; i < MAX_CODE_ARRAY_SIZE; i++) {
+//        if (instructions->code_line[i] != NULL) {
+//            free(instructions->code_line[i]);
+//            instructions->code_line[i] = NULL;
+//        }
+//    }
+//}
+//
+//void free_symbol_table(SymbolTableEntry* symbol_table) {
+//
+//}
+//
+//
+//void free_assembler_state(AssemblerState* assembler_state) {
+//    free_symbol_table(assembler_state->symbol_table);
+//    free_instructions(&(assembler_state->code_image));
+//    free_instructions(&(assembler_state->data_image));
+//}

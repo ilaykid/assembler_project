@@ -19,7 +19,7 @@ bool handle_data_or_string(bool has_label, char  label[16], const char* line);
 bool is_line_contains_opcode(const char* line);
 
 bool first_pass(const char* base_input_filename) {
-	init_global_state(global_state);
+	init_global_state();
 	char am_filename[MAX_FILENAME_LENGTH];
 	char line[256];
 	sprintf(am_filename, "%s.am", base_input_filename);
@@ -91,6 +91,7 @@ bool handle_extern(const char* line)
 		printf("Error: Symbol %s already defined\n", ENTRY_DIRECTIVE);
 		return false;
 	}
+	global_state.extern_counter++;
 	return true;
 }
 bool handle_data_or_string(bool has_label, char  label[16], const char* line)

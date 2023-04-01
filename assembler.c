@@ -37,6 +37,7 @@ int main(int argc, char* argv[]) {
         else {
             printf("Successfully processed file: %s\n", base_filename);
         }
+//        free_assembler_state(&global_state);
     }
 
     return 0;

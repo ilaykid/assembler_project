@@ -14,12 +14,13 @@ typedef struct Macro {
     MacroLine* lines;
     struct Macro* next;
 } Macro;
-static Macro* macro_table = NULL;
+static Macro* macro_table;
 void insert_macro(const char* name, MacroLine* lines);
 Macro* get_macro(const char* name);
 
 bool preprocess(const char* base_filename) {
     int macro_flag = 0;
+    macro_table = NULL;
     char line[MAX_LINE_LENGTH];
     char macro_name[MAX_LABEL_LENGTH];
     char as_filename[MAX_FILENAME_LENGTH];

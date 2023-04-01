@@ -22,9 +22,10 @@ typedef struct {
 
 extern AssemblerState global_state;
 extern OpcodeTableEntry opcode_table[];
+
 bool is_line_contains_word(const char* line, const char* word);
 char* encode_unique_base_2(int num, int count_bits);
-void init_global_state(AssemblerState global_state);
+void init_global_state();
 /* Function to remove whitespace from the beginning and end of a string */
 void trim_whitespace(char* str);
 

@@ -313,14 +313,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="addressing_methods.c" />
     <ClCompile Include="C:\Users\Lavy\source\repos\‏‏Project-C-New-IlayKidron\assembler.c" />
     <ClCompile Include="C:\Users\Lavy\source\repos\‏‏Project-C-New-IlayKidron\first_pass.c" />
     <ClCompile Include="C:\Users\Lavy\source\repos\‏‏Project-C-New-IlayKidron\second_pass.c" />
     <ClCompile Include="C:\Users\Lavy\source\repos\‏‏Project-C-New-IlayKidron\symbol_table.c" />
     <ClCompile Include="C:\Users\Lavy\source\repos\‏‏Project-C-New-IlayKidron\utilities.c" />
-    <ClCompile Include="instructions.c" />
-    <ClCompile Include="instruction_structure.c" />
     <ClCompile Include="opcode_table.c" />
     <ClCompile Include="operand.c" />
     <ClCompile Include="output_files.c" />
@@ -328,9 +325,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="action_codes.h" />
-    <ClInclude Include="addressing_methods.h" />
-    <ClInclude Include="instructions.h" />
-    <ClInclude Include="instruction_structure.h" />
     <ClInclude Include="opcode_table.h" />
     <ClInclude Include="operand.h" />
     <ClInclude Include="output_files.h" />

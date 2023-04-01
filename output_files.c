@@ -21,12 +21,18 @@ bool generate_output_files(char* base_filename)
     insert_code_to_obj_file(obj_file);
     insert_data_to_obj_file(obj_file);
     fclose(obj_file);
-    FILE* ent_file = fopen(entry_filename, "w");
-    insert_symbols_to_file(ent_file,ENTRY_DIRECTIVE);
-    fclose(ent_file);
-    FILE* ext_file = fopen(extern_filename , "w");
-    insert_symbols_to_file(ent_file, EXTERN_DIRECTIVE);
-    fclose(ext_file);
+    if (global_state.entry_counter > 0)
+    {
+        FILE* ent_file = fopen(entry_filename, "w");
+        insert_symbols_to_file(ent_file, ENTRY_DIRECTIVE);
+        fclose(ent_file);
+    }
+    if (global_state.extern_counter > 0)
+    {
+        FILE* ext_file = fopen(extern_filename, "w");
+        insert_symbols_to_file(ext_file, EXTERN_DIRECTIVE);
+        fclose(ext_file);
+    }
 	return true;
 }
 
