@@ -25,6 +25,8 @@ bool add_to_symbol_table(const char* symbol, unsigned int address,
     new_entry->address = address;
     new_entry->relocatable = relocatable;
     new_entry->data_part = data_part;
+    new_entry->symbol_type = symbol_type;
+
     new_entry->next = NULL;
 
     if (!global_state.symbol_table) {
@@ -65,7 +67,8 @@ void process_data_directive(const char* line) {
     sscanf(line, "%s .data", label);
 
     if (strlen(label) > 0) {
-        add_to_symbol_table(label, global_state.data_counter, true, true,DATA_DIRECTIVE);
+        add_to_symbol_table(label, global_state.data_counter,
+            true, true,DATA_DIRECTIVE);
     }
 
     const char* data_start = strstr(line, ".data") + strlen(".data");

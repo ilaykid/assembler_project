@@ -3,4 +3,10 @@
 
 bool generate_output_files(char* base_filename);
 
+void insert_symbols_to_file(FILE* ent_file);
+
+void insert_data_to_obj_file(FILE* obj_file);
+
+void insert_code_to_obj_file(FILE* obj_file);
+
 #endif /* OUTPUT_FILES_H */

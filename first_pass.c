@@ -8,12 +8,14 @@
 #include "opcode_table.h"
 #include "utilities.h"
 #include "operand.h"
-AssemblerState global_state;
+//AssemblerState global_state;
 bool handle_operands(char* line, const char* directive, bool is_relo);
 char* build_first_word_binary(OpcodeTableEntry* opcode_entry, int operands_num, Operand  operands[3], int line_number);
 bool parse_directive(const char* line, char* directive, int* chars_before_directive_counter);
 bool parse_opcode(const char* line, char* opcode);
 bool process_line_first_pass(const char* line, int line_number);
+bool handle_extern(const char* line);
+bool handle_data_or_string(bool has_label, char  label[16], const char* line);
 bool is_line_contains_opcode(const char* line);
 
 bool first_pass(const char* base_input_filename) {
@@ -57,26 +59,11 @@ bool process_line_first_pass(const char* line, int line_number) {
 	if (is_line_contains_word(line, STRING_DIRECTIVE) ||
 		is_line_contains_word(line, DATA_DIRECTIVE))
 	{
-		if (has_label) {
-			if (!add_to_symbol_table(label, global_state.data_counter,
-				true, true, DATA_DIRECTIVE)) {
-				printf("Error: Symbol %s already defined\n", label);
-				return false;
-			}
-		}
-		// Update data counter according to data or string length
-		int data_length = process_data_or_string(line);
-		global_state.data_counter += data_length;
-		return true;
+		return handle_data_or_string(has_label, label, line);
 	}
 	/*Check for extern directive*/
 	if (is_line_contains_word(line, EXTERN_DIRECTIVE)) {
-		/* Insert symbol into symbol table with external flag and no value*/
-		if (!handle_operands(line, EXTERN_DIRECTIVE, false)) {
-			printf("Error: Symbol %s already defined\n", ENTRY_DIRECTIVE);
-			return false;
-		}
-		return true;
+		return handle_extern(line);
 	}
 	// Check for entry directive
 	if (is_line_contains_word(line, ENTRY_DIRECTIVE)) //handle it on second pass
@@ -95,6 +82,29 @@ bool process_line_first_pass(const char* line, int line_number) {
 		return false;
 
 	add_ic_to_all_data(global_state.instruction_counter);
+	return true;
+}
+bool handle_extern(const char* line)
+{
+	/* Insert symbol into symbol table with external flag and no value*/
+	if (!handle_operands(line, EXTERN_DIRECTIVE, false)) {
+		printf("Error: Symbol %s already defined\n", ENTRY_DIRECTIVE);
+		return false;
+	}
+	return true;
+}
+bool handle_data_or_string(bool has_label, char  label[16], const char* line)
+{
+	if (has_label) {
+		if (!add_to_symbol_table(label, global_state.data_counter,
+			true, true, DATA_DIRECTIVE)) {
+			printf("Error: Symbol %s already defined\n", label);
+			return false;
+		}
+	}
+	// Update data counter according to data or string length
+	int data_length = process_data_or_string(line);
+	global_state.data_counter += data_length;
 	return true;
 }
 /* Calculate the length of the instruction and update the instruction counter */
@@ -259,7 +269,8 @@ int process_data_or_string(const char* line) {
 			}
 
 			// Add the number to the data image
-			global_state.data_image[global_state.data_counter++] = num;
+			global_state.data_image.code_line[global_state.data_counter++]
+				= encode_unique_base_2(num, WORD_SIZE);
 			data_word_count++;
 
 			ptr = endptr;
@@ -293,7 +304,8 @@ int process_data_or_string(const char* line) {
 				return 0;
 			}
 
-			global_state.data_image[global_state.data_counter++] = *ptr;
+			global_state.data_image.code_line[global_state.data_counter++] = 
+				encode_unique_base_2 (*ptr,WORD_SIZE);
 			ptr++;
 			str_length++;
 		}
@@ -304,7 +316,7 @@ int process_data_or_string(const char* line) {
 		}
 
 		/*Add the terminating null character to the string*/
-		global_state.data_image[global_state.data_counter++] = '\0';
+		global_state.data_image.code_line[global_state.data_counter++] = '\0';
 		str_length++;
 		return str_length;
 	}

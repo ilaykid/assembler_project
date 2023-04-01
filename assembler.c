@@ -4,6 +4,7 @@
 #include "second_pass.h"
 #include "utilities.h"
 #include "output_files.h"
+AssemblerState global_state;
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         printf("Usage: %s <assembly_file>\n", argv[0]);

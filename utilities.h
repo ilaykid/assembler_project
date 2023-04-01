@@ -7,7 +7,7 @@
 #define UTILITIES_H
 typedef struct {
     unsigned char* code_line[MAX_CODE_ARRAY_SIZE];
-} CodeInsturctions;
+} Insturctions;
 typedef struct {
     SymbolTableEntry* symbol_table;
     unsigned int instruction_counter;
@@ -16,9 +16,10 @@ typedef struct {
     unsigned int extern_counter;
     unsigned int code_length;
     unsigned int data_length;
-    CodeInsturctions code_image;
-    unsigned int data_image[MAX_DATA_ARRAY_SIZE];
+    Insturctions code_image;
+    Insturctions data_image;
 } AssemblerState;
+
 extern AssemblerState global_state;
 extern OpcodeTableEntry opcode_table[];
 bool is_line_contains_word(const char* line, const char* word);

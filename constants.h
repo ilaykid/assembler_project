@@ -6,6 +6,7 @@
 /* Maximum length of a line in the input file */
 #define MAX_LINE_LENGTH 256
 #define MAX_LINE_WORDS_COUNT 6
+
 /* Maximum length of a label in the input file */
 #define MAX_LABEL_LENGTH 16
 /* Maximum number of macros in the input file */
@@ -36,7 +37,7 @@
 /*Register on our system*/
 #define REGISTER_SIZE 14
 
-#define MEMORY_SIZE 256
+//#define MEMORY_SIZE 256
 
 #define WORD_SIZE 14
 /* Varibles and masks for encode instuctions */
