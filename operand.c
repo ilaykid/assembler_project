@@ -2,13 +2,15 @@
 #include "utilities.h"
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 bool is_valid_register(const char* reg);
 char* list_of_registers[MAX_REGISTER_NUM] = 
 {"r0","r1","r2" ,"r3" ,"r4" ,"r5" ,"r6" ,"r7" };
 Operand create_operand(int value, int address, int addressing_method){
     Operand operand = {
         .value = value,
-        //.address = address,
+        /*.address = address,*/
         .addressing_method = addressing_method
     };
     return operand;
@@ -22,25 +24,26 @@ void free_operands(Operand* operands, int num_operands) {
 }
 /* Extract the operand from the given string */
 char* get_operands_string(const char* line, const char* mnemonic_name) {
-    // Check that the line begins with the expected mnemonic name
+    /*/ Check that the line begins with the expected mnemonic name*/
     if (strncmp(line, mnemonic_name, strlen(mnemonic_name)) != 0) {
         return NULL;
     }
 
-    // Skip over the mnemonic name
+    /*/ Skip over the mnemonic name*/
     const char* operand_start = line + strlen(mnemonic_name);
     int operand_length = line+strlen(line) - operand_start;
+    char* operands_string = malloc(operand_length + 1);
+
     while (*operand_start == ' ' || *operand_start == '\t') {
         operand_start++;
     }
 
-    // Check if there is an operand
+    /*/ Check if there is an operand*/
     if (*operand_start == '\0') {
         return NULL;
     }
 
-    // Return the operand string
-    char* operands_string = malloc(operand_length + 1);
+    /*/ Return the operand string*/
     strncpy(operands_string, operand_start, operand_length);
     if (operands_string == NULL) {
         printf("Error: Failed to allocate memory for operand\n");
@@ -52,7 +55,7 @@ char* get_operands_string(const char* line, const char* mnemonic_name) {
 
 /* Extract the operand from the given string */
 bool get_operand_object(const char* operand_str, Operand* operand,bool is_jump) {
-     //Check for immediate addressing mode
+     /*/Check for immediate addressing mode*/
     trim_whitespace(operand_str);
     if (operand_str[0] == '#') {
         operand->addressing_method = IMMEDIATE;
@@ -60,59 +63,34 @@ bool get_operand_object(const char* operand_str, Operand* operand,bool is_jump) 
         return true;
     }
     else if (is_valid_register(operand_str)) {
-        operand->addressing_method = REGISTER_DIRECT;
-
         char* reg_value_str = operand_str + 1;
         int reg_value = *reg_value_str - '0';
+        operand->addressing_method = REGISTER_DIRECT;
         operand->value = reg_value;
-        //sprintf(operand->value, "%d", reg_value);
         return true;
     }
-    // Check for direct addressing mode
-    else if(!is_jump)//if (is_valid_label(operand_str)) 
+    /*/ Check for direct addressing mode*/
+    else if(!is_jump)
     {
-        operand->addressing_method = DIRECT;
         SymbolTableEntry* symbol = get_symbol(operand_str);
+        operand->addressing_method = DIRECT;
         if (symbol==NULL)
             return true;
         else
         {
             operand->value = symbol->address;
         }
-        //strncpy(operand->value, operand_str, MAX_LABEL_LENGTH);
     }
     else
     {
         operand->addressing_method = JUMP;
-        //strncpy(operand->value, operand_str, MAX_LABEL_LENGTH);
         return true;
     }
-    //// Check for indirect addressing mode
-    //else if (operand_str[0] == '*') {
-    //    if (is_valid_label(operand_str + 1)) {
-    //        operand->addressing_method = JUMP;
-    //        strncpy(operand->value, operand_str + 1, MAX_LABEL_LENGTH);
-    //        return true;
-    //    }
-    //    else {
-    //        printf("Error: Invalid operand %s\n", operand_str);
-    //        return false;
-    //    }
-    //}
-    //// Check for relative addressing mode
-    //else if (is_valid_label(operand_str)) {
-    //    operand->addressing_method = REGISTER_DIRECT;
-    //    strncpy(operand->value, operand_str, MAX_LABEL_LENGTH);
-    //    return true;
-    //}
-    //else {
-    //    printf("Error: Invalid operand %s\n", operand_str);
-    //    return false;
-    //}
-    return true;//temp
+    return true;
 }
 bool is_valid_register(const char* reg) {
-    for (int i = 0; i < MAX_REGISTER_NUM; i++)
+    int i;
+    for (i = 0; i < MAX_REGISTER_NUM; i++)
     {
         if (strcmp(reg, list_of_registers[i]) == 0)
         {
@@ -132,16 +110,17 @@ bool is_jump_opcode(char* mnemonic_name)
 int handle_and_count_operands(const char* line, int line_number,
     int* instruction_counter, char* mnemonic_name, Operand operands[]) {
     char instruction[MAX_LINE_LENGTH + 1];
-    strncpy(instruction, line, MAX_LINE_LENGTH);
     bool is_jump = false;
-    if (is_jump_opcode(mnemonic_name))
-        is_jump = true;
-    //trim_whitespace(instruction);
-
-    // Get the operand string and parse it into operand objects
-    char* operand_string = get_operands_string(instruction, mnemonic_name);
+    /*/ Get the operand string and parse it into operand objects*/
+    char* operand_string = get_operands_string(line, mnemonic_name);
     int num_operands = 0;
     int i = 0;
+    strncpy(instruction, line, MAX_LINE_LENGTH);
+    if (is_jump_opcode(mnemonic_name))
+        is_jump = true;
+
+
+
     if (operand_string != NULL) {
         if (is_jump)
         {
@@ -161,9 +140,9 @@ int handle_and_count_operands(const char* line, int line_number,
             }
             if (ptr != end_address) /*there is more registers*/
             {
+                char jump_reg[MAX_LABEL_LENGTH];
                 ptr++;
                 i = 0;
-                char jump_reg[MAX_LABEL_LENGTH];
                 while (*ptr != ',' && ptr != end_address)
                 {
                     jump_reg[i++] = *ptr++;
@@ -187,7 +166,7 @@ int handle_and_count_operands(const char* line, int line_number,
                     printf("Error at line %d: Failed to parse operand\n", line_number);
                     exit(1);
                 }
-                if (*ptr != ')')//error
+                if (*ptr != ')')/*/error*/
                 {
                     printf("Error at line %d: Failed to parse operand\n", line_number);
                     exit(1);

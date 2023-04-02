@@ -1,14 +1,13 @@
 ﻿#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdbool.h>
 #include "first_pass.h"
 #include "symbol_table.h"
 #include "constants.h"
-#include "instructions.h"
 #include "opcode_table.h"
 #include "utilities.h"
 #include "operand.h"
-//AssemblerState global_state;
 bool handle_operands(char* line, const char* directive, bool is_relo);
 char* build_first_word_binary(OpcodeTableEntry* opcode_entry, int operands_num, Operand  operands[3], int line_number);
 bool parse_directive(const char* line, char* directive, int* chars_before_directive_counter);
@@ -19,18 +18,21 @@ bool handle_data_or_string(bool has_label, char  label[16], const char* line);
 bool is_line_contains_opcode(const char* line);
 
 bool first_pass(const char* base_input_filename) {
-	init_global_state();
 	char am_filename[MAX_FILENAME_LENGTH];
 	char line[256];
+	FILE* file;
+	int line_number;
+	bool success;
+	init_global_state();
 	sprintf(am_filename, "%s.am", base_input_filename);
-	FILE* file = fopen(am_filename, "r");
+	file = fopen(am_filename, "r");
 	if (!file) {
 		perror("Error opening file");
 		return false;
 	}
-	int line_number = 1;
-	bool success = true;
-	// Read and process lines in the assembly file
+	line_number = 1;
+	success = true;
+	/*/ Read and process lines in the assembly file*/
 	while (fgets(line, sizeof(line), file)) {
 		/* Remove trailing newline character*/
 		strtok(line, "\n");
@@ -65,8 +67,8 @@ bool process_line_first_pass(const char* line, int line_number) {
 	if (is_line_contains_word(line, EXTERN_DIRECTIVE)) {
 		return handle_extern(line);
 	}
-	// Check for entry directive
-	if (is_line_contains_word(line, ENTRY_DIRECTIVE)) //handle it on second pass
+	/*/ Check for entry directive*/
+	if (is_line_contains_word(line, ENTRY_DIRECTIVE)) /*/handle it on second pass*/
 		return true;
 	if (has_label)
 	{
@@ -103,7 +105,7 @@ bool handle_data_or_string(bool has_label, char  label[16], const char* line)
 			return false;
 		}
 	}
-	// Update data counter according to data or string length
+	/*/ Update data counter according to data or string length*/
 	int data_length = process_data_or_string(line);
 	global_state.data_counter += data_length;
 	return true;
@@ -132,7 +134,6 @@ char* build_first_word_binary(OpcodeTableEntry* opcode_entry, int operands_num, 
 	char param2[PARAM_BITS + 1];
 	char* instruction_binary = malloc((WORD_SIZE + 1) * sizeof(char));
 	strcpy(instruction_binary, "");
-	//char t1[OPCODE_BITS] = ;
 	strcpy(era_method, ABSOLUTE_ENCODING);
 	strcpy(opcode_binary, encode_unique_base_2(opcode_entry->opcode_index, OPCODE_BITS));
 	fill_string_with_dots(param1, PARAM_BITS);
@@ -223,19 +224,14 @@ bool handle_operands(char* line, const char* directive, bool is_relo) {
 		add_to_symbol_table(operand, 0, is_relo, false, directive);
 
 	}
-	// Skip the directive and any whitespace
-
-
-	// Update the line pointer to point to the beginning of the operands
-	//line = ptr;
 }
 /* Check if the given line contains an opcode */
 bool is_line_contains_opcode(const char* line) {
 	char opcode[MAX_OPCODE_LENGTH + 1];
 
-	// Attempt to parse the opcode from the line
+	/* Attempt to parse the opcode from the line*/
 	if (parse_opcode(line, opcode)) {
-		// Look up the opcode in the opcode table
+		/* Look up the opcode in the opcode table*/
 		return (opcode_table_lookup(opcode) != NULL);
 	}
 	else {
@@ -247,36 +243,36 @@ int process_data_or_string(const char* line) {
 	char directive[MAX_LABEL_LENGTH + 1];
 	char* ptr = line;
 	int chars_before_directive_counter = 0;
-	// Parse the directive from the line
+	/* Parse the directive from the line*/
 	if (!parse_directive(line, directive, &chars_before_directive_counter)) {
 		printf("Error: Invalid directive\n");
 		return 0;
 	}
 
-	// Move the pointer after the directive name
+	/* Move the pointer after the directive name*/
 	ptr += chars_before_directive_counter;
-	// Check if this is a .data directive
+	/*/ Check if this is a .data directive*/
 	if (strcmp(directive, DATA_DIRECTIVE) == 0) {
 		char* endptr;
 		int data_word_count = 0;
 
 		while (*ptr) {
-			// Convert the next number to int
+			/*/ Convert the next number to int*/
 			int num = strtol(ptr, &endptr, 10);
 			if (ptr == endptr) {
-				// No number was found
+				/*/ No number was found*/
 				printf("Error: Invalid number in .data directive\n");
 				return 0;
 			}
 
-			// Add the number to the data image
+			/*/ Add the number to the data image*/
 			global_state.data_image.code_line[global_state.data_counter++]
 				= encode_unique_base_2(num, WORD_SIZE);
 			data_word_count++;
 
 			ptr = endptr;
 
-			// Skip white spaces and commas
+			/* Skip white spaces and commas*/
 			while (isspace(*ptr) || *ptr == ',') {
 				ptr++;
 			}
@@ -287,14 +283,14 @@ int process_data_or_string(const char* line) {
 	while (isspace(*ptr)) {
 		ptr++;
 	}
-	// Check if this is a .string directive
+	/** Check if this is a.string directive*/
 	if (strcmp(directive, STRING_DIRECTIVE) == 0) {
 		if (*ptr != '\"') {
 			printf("Error: Invalid .string directive\n");
 			return 0;
 		}
 
-		// Skip the opening quotation mark
+		/*/ Skip the opening quotation mark*/
 		ptr++;
 
 		int str_length = 0;
@@ -327,11 +323,11 @@ int process_data_or_string(const char* line) {
 }
 /* Parse the opcode from the given line */
 bool parse_opcode(const char* line, char* opcode) {
-	// Copy the line to a temporary buffer to tokenize it
+	/*/ Copy the line to a temporary buffer to tokenize it*/
 	char buffer[MAX_LINE_LENGTH + 1];
 	strcpy(buffer, line);
 
-	// Tokenize the line and extract the first token as the opcode
+	/*/ Tokenize the line and extract the first token as the opcode*/
 	char* token = strtok(buffer, " \t");
 	if (token != NULL) {
 		strncpy(opcode, token, MAX_OPCODE_LENGTH);
@@ -345,14 +341,14 @@ bool parse_opcode(const char* line, char* opcode) {
 bool parse_directive(const char* line, char* directive, int* chars_before_directive_counter) {
 	int i = 0;
 	int j = 0;
-	// Check for a dot at the beginning of the line
+	/*/ Check for a dot at the beginning of the line*/
 	while (line[i] != '.' && i < strlen(line))
 		i++;
 	if (i == strlen(line))
 		return false;
 	directive[j] = '.';
 	j++; i++;
-	// Copy the directive into the output string
+	/*/ Copy the directive into the output string*/
 	while (isalpha(line[i]) && line[i] != ' ' && i < MAX_LABEL_LENGTH) {
 		directive[j] = line[i];
 		i++; j++;

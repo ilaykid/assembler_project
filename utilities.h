@@ -6,16 +6,16 @@
 #ifndef UTILITIES_H
 #define UTILITIES_H
 typedef struct {
-    unsigned char* code_line[MAX_CODE_ARRAY_SIZE];
+    char* code_line[MAX_CODE_ARRAY_SIZE];
 } Insturctions;
 typedef struct {
     SymbolTableEntry* symbol_table;
-    unsigned int instruction_counter;
-    unsigned int data_counter;
-    unsigned int entry_counter;
-    unsigned int extern_counter;
-    unsigned int code_length;
-    unsigned int data_length;
+    int instruction_counter;
+    int data_counter;
+    int entry_counter;
+    int extern_counter;
+    int code_length;
+    int data_length;
     Insturctions code_image;
     Insturctions data_image;
 } AssemblerState;

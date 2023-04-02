@@ -43,16 +43,16 @@ bool add_to_symbol_table(const char* symbol, unsigned int address,
 }
 /* Find the symbol table entry with the given symbol name */
 SymbolTableEntry* get_symbol(const char* symbol_name) {
-    // Traverse the linked list of symbol table entries
+    /*Traverse the linked list of symbol table entries*/
     SymbolTableEntry* entry = global_state.symbol_table;
     while (entry != NULL) {
-        // Compare the symbol name with the entry's symbol
+        /* Compare the symbol name with the entry's symbol*/
         if (strcmp(entry->symbol, symbol_name) == 0) {
-            return entry; // return the matching entry
+            return entry; /*/ return the matching entry*/
         }
-        entry = entry->next; // move to the next entry in the linked list
+        entry = entry->next; /*/ move to the next entry in the linked list*/
     }
-    // No matching symbol was found in the symbol table
+    /*/ No matching symbol was found in the symbol table*/
     return NULL;
 }
 bool is_valid_label(const char* label) {
@@ -64,15 +64,14 @@ bool is_valid_label(const char* label) {
 }
 void process_data_directive(const char* line) {
     char label[MAX_SYMBOL_LENGTH + 1] = { 0 };
+    const char* data_start = strstr(line, ".data") + strlen(".data");
+    int value;
     sscanf(line, "%s .data", label);
 
     if (strlen(label) > 0) {
         add_to_symbol_table(label, global_state.data_counter,
             true, true,DATA_DIRECTIVE);
     }
-
-    const char* data_start = strstr(line, ".data") + strlen(".data");
-    int value;
     while (sscanf(data_start, "%d", &value) == 1) {
         global_state.data_counter++;
         data_start = strchr(data_start, ',') + 1;

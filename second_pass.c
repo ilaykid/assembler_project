@@ -5,12 +5,14 @@
 #include "utilities.h"
 #include "operand.h"
 bool insert_entry(char* line);
-void handle_two_direct_registers(char  instruction_binary[15], char  address[13], Operand  operands[3], char  era_method[3]);
-void handle_jump_line(char  instruction_binary[15], char  address[13], Operand  operands[3], char  era_method[3], int line_num);
-int second_pass(const char* base_input_filename) {
-	// Initialize variables
-	int error_count = 0;
-	int IC = 0; // Initialize IC to 0
+void handle_two_direct_registers(char  instruction_binary[WORD_SIZE + 1], char  address[ADDRESS_BITS + 1],
+	Operand  operands[MAX_OPERANDS], char  era_method[ERA_BITS + 1], int line_num,
+	int index);
+void handle_jump_line(char instruction_binary[WORD_SIZE + 1], char  address[ADDRESS_BITS + 1]
+	, Operand  operands[MAX_OPERANDS], char  era_method[ERA_BITS + 1], int line_num, int idx_operand);
+
+bool second_pass(const char* base_input_filename) {
+	/*/ Initialize variables*/
 	int line_num = 0;
 	char line[MAX_LINE_LENGTH];
 	char* tokens[MAX_LINE_WORDS_COUNT];
@@ -18,33 +20,33 @@ int second_pass(const char* base_input_filename) {
 
 	global_state.instruction_counter = 0;
 	sprintf(am_filename, "%s.am", base_input_filename);
-	// Open input file
+	/*/ Open input file*/
 	FILE* input_file = fopen(am_filename, "r");
 	if (input_file == NULL) {
 		printf("Error: Failed to open input file: %s\n", am_filename);
 		return 0;
 	}
-	// Read input file line by line
+	/*/ Read input file line by line*/
 	while (fgets(line, MAX_LINE_LENGTH, input_file)) {
 		line_num++;
 		trim_whitespace(line);
 		char* orig_line="";
 		strcpy(orig_line, line);
-		// Split line into tokens
+		/*/ Split line into tokens*/
 		int num_tokens = split_line(line, tokens);
 		int skip_chars = 0;
-		// Skip empty lines and comments
+		/*/ Skip empty lines and comments*/
 		if (num_tokens == 0 || tokens[0][0] == ';') {
 			continue;
 		}
 		if (tokens[0][strlen(tokens[0]) - 1] == ':') {
 			tokens[0][strlen(tokens[0]) - 1] = '\0';
 		}
-		// Check if line contains a symbol
+		/*/ Check if line contains a symbol*/
 
 		if (is_valid_label(tokens[0])) {
 			skip_chars = strlen(tokens[0]) + 2;
-			// Skip symbol and process instruction/directive
+			/*/ Skip symbol and process instruction/directive*/
 			num_tokens--;
 			memmove(tokens, tokens + 1, num_tokens * sizeof(char*));
 		}
@@ -60,16 +62,16 @@ int second_pass(const char* base_input_filename) {
 			}
 			continue;
 		}
-
+		char era_method[ERA_BITS + 1];
+		char address[ADDRESS_BITS + 1];
+		char instruction_binary[WORD_SIZE + 1];
+		int i;
 		OpcodeTableEntry* opcode_entry = get_opcode(orig_line, skip_chars);
 		Operand operands[MAX_OPERANDS];
 		orig_line= orig_line + skip_chars;
 		int operands_num = handle_and_count_operands(orig_line, line_num
 			, global_state.instruction_counter, opcode_entry->mnemonic, operands);
 		int instruction_length = 1 + operands_num;
-		char era_method[ERA_BITS + 1];
-		char address[ADDRESS_BITS + 1];
-		char instruction_binary[WORD_SIZE + 1];
 		instruction_binary[0] = 0;
 		if (is_jump_opcode(opcode_entry->mnemonic))
 		{
@@ -106,10 +108,11 @@ int second_pass(const char* base_input_filename) {
 				era_method, line_num, 0);
 
 		}
-		else for (int i = 0; i < operands_num; i++)
+
+		else for ( i = 0; i < operands_num; i++)
 		{
-			instruction_binary[0] = 0;
 			Operand this_op = operands[i];
+			instruction_binary[0] = 0;
 			if (this_op.addressing_method == IMMEDIATE)
 			{
 				strcpy(address, encode_unique_base_2(this_op.value, ADDRESS_BITS));
@@ -136,9 +139,9 @@ int second_pass(const char* base_input_filename) {
 		}
 		global_state.instruction_counter += instruction_length;
 	}
-	// Close input and output files
+	/*/ Close input and output files*/
 	fclose(input_file);
-	return error_count == 0; // Return success if there were no errors
+	return true; /*/ Return success if there were no errors*/
 }
 void handle_two_direct_registers(char  instruction_binary[WORD_SIZE + 1], char  address[ADDRESS_BITS + 1],
 	Operand  operands[MAX_OPERANDS], char  era_method[ERA_BITS + 1],int line_num,
@@ -167,7 +170,6 @@ void handle_jump_line(char instruction_binary[WORD_SIZE+1], char  address[ADDRES
 }
 bool insert_entry(char* label) {
 	/* Find the directive in the line */
-	char* ptr = label + strlen(ENTRY_DIRECTIVE);
 	SymbolTableEntry* entry = get_symbol(label);
 	if (entry == NULL) return false;
 	add_to_symbol_table(label, entry->address, entry->relocatable

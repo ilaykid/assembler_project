@@ -5,4 +5,4 @@
 
 bool first_pass(const char* filename);
 
-#endif // FIRST_PASS_H
+#endif /* FIRST_PASS_H */

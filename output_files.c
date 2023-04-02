@@ -1,10 +1,11 @@
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 #include "constants.h"
-#include "UTILITIES.H"
+#include "utilities.h"
 #include "output_files.h"
 
-bool generate_output_files(char* base_filename)
+bool generate_output_files(const char* base_filename)
 {
 	char obj_filename[MAX_FILENAME_LENGTH];
 	char entry_filename[MAX_FILENAME_LENGTH];
@@ -39,9 +40,8 @@ bool generate_output_files(char* base_filename)
 void insert_symbols_to_file(FILE* file,char* directive)
 {
     SymbolTableEntry* entry = global_state.symbol_table;
-
     while (entry != NULL) {
-        // Compare the symbol name with the extern's symbol
+        /* Compare the symbol name with the extern's symbol*/
         if (strcmp(entry->symbol_type, directive) == 0) {
             char* line = entry->symbol;
             strcat(line, "\t");
@@ -49,13 +49,14 @@ void insert_symbols_to_file(FILE* file,char* directive)
             strcat(line, "\n");
             fputs(line, file);
         }
-        entry = entry->next; // move to the next entry in the linked list
+        entry = entry->next; /* move to the next entry in the linked list*/
     }
 }
 
 void insert_data_to_obj_file(FILE* obj_file)
 {
-    for (int i = 0; i < global_state.data_counter; i++)
+    int i;
+    for (i = 0; i < global_state.data_counter; i++)
     {
         char* line = global_state.data_image.code_line[i];
         if (line)
@@ -70,7 +71,8 @@ void insert_data_to_obj_file(FILE* obj_file)
 
 void insert_code_to_obj_file(FILE* obj_file)
 {
-    for (int i = 0; i < global_state.instruction_counter * 4; i++)
+    int i;
+    for (i = 0; i < global_state.instruction_counter * 4; i++)
     {
         char* line = global_state.code_image.code_line[i];
         if (line)

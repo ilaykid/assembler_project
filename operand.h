@@ -10,7 +10,6 @@ typedef struct {
 } Operand;
 bool is_jump_opcode(char* mnemonic_name);
 void free_operands(Operand* operands, int num_operands);
-//Operand create_operand(int value, int address, int addressing_method);
 bool is_valid_register(const char* reg);
 char* get_operands_string(const char* line, const char* mnemonic_name);
 bool get_operand_object(const char* operand_str, Operand* operand, bool is_jump);
