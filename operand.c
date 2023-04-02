@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-bool is_valid_register(const char* reg);
+bool is_valid_register(char* reg);
 char* list_of_registers[MAX_REGISTER_NUM] = 
 {"r0","r1","r2" ,"r3" ,"r4" ,"r5" ,"r6" ,"r7" };
 Operand create_operand(int value, int address, int addressing_method){
@@ -23,14 +23,14 @@ void free_operands(Operand* operands, int num_operands) {
     }
 }
 /* Extract the operand from the given string */
-char* get_operands_string(const char* line, const char* mnemonic_name) {
+char* get_operands_string(char* line, char* mnemonic_name) {
     /*/ Check that the line begins with the expected mnemonic name*/
     if (strncmp(line, mnemonic_name, strlen(mnemonic_name)) != 0) {
         return NULL;
     }
 
     /*/ Skip over the mnemonic name*/
-    const char* operand_start = line + strlen(mnemonic_name);
+    char* operand_start = line + strlen(mnemonic_name);
     int operand_length = line+strlen(line) - operand_start;
     char* operands_string = malloc(operand_length + 1);
 
@@ -54,7 +54,7 @@ char* get_operands_string(const char* line, const char* mnemonic_name) {
 }
 
 /* Extract the operand from the given string */
-bool get_operand_object(const char* operand_str, Operand* operand,bool is_jump) {
+bool get_operand_object(char* operand_str, Operand* operand,bool is_jump) {
      /*/Check for immediate addressing mode*/
     trim_whitespace(operand_str);
     if (operand_str[0] == '#') {
@@ -88,7 +88,7 @@ bool get_operand_object(const char* operand_str, Operand* operand,bool is_jump) 
     }
     return true;
 }
-bool is_valid_register(const char* reg) {
+bool is_valid_register(char* reg) {
     int i;
     for (i = 0; i < MAX_REGISTER_NUM; i++)
     {
@@ -107,7 +107,7 @@ bool is_jump_opcode(char* mnemonic_name)
         !strcmp(mnemonic_name, "jsr");
 }
 /* Process an instruction from the given line */
-int handle_and_count_operands(const char* line, int line_number,
+int handle_and_count_operands(char* line, int line_number,
     int* instruction_counter, char* mnemonic_name, Operand operands[]) {
     char instruction[MAX_LINE_LENGTH + 1];
     bool is_jump = false;

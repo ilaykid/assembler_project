@@ -1,4 +1,5 @@
 ﻿#include <stdio.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
@@ -8,16 +9,18 @@
 #include "opcode_table.h"
 #include "utilities.h"
 #include "operand.h"
-bool handle_operands(char* line, const char* directive, bool is_relo);
+bool handle_operands(char* line, char* directive, bool is_relo);
 char* build_first_word_binary(OpcodeTableEntry* opcode_entry, int operands_num, Operand  operands[3], int line_number);
-bool parse_directive(const char* line, char* directive, int* chars_before_directive_counter);
-bool parse_opcode(const char* line, char* opcode);
-bool process_line_first_pass(const char* line, int line_number);
-bool handle_extern(const char* line);
-bool handle_data_or_string(bool has_label, char  label[16], const char* line);
-bool is_line_contains_opcode(const char* line);
-
-bool first_pass(const char* base_input_filename) {
+bool parse_directive(char* line, char* directive, int* chars_before_directive_counter);
+bool parse_opcode(char* line, char* opcode);
+bool process_line_first_pass(char* line, int line_number);
+bool handle_extern(char* line);
+int process_data_or_string(char* line);
+bool handle_data_or_string(bool has_label, char  label[16], char* line);
+bool is_line_contains_opcode(char* line);
+void calculate_instruction_length_and_update_IC(char* line, int line_number,
+	int skip_chars);
+bool first_pass(char* base_input_filename) {
 	char am_filename[MAX_FILENAME_LENGTH];
 	char line[256];
 	FILE* file;
@@ -45,11 +48,9 @@ bool first_pass(const char* base_input_filename) {
 	fclose(file);
 	return success;
 }
-bool process_line_first_pass(const char* line, int line_number) {
+bool process_line_first_pass(char* line, int line_number) {
 	/* Variables for line processing*/
-	char label[MAX_LABEL_LENGTH],
-		opcode[MAX_OPCODE_LENGTH],
-		operands[MAX_OPERANDS_LENGTH];
+	char label[MAX_LABEL_LENGTH];
 	bool has_label;
 	int skip_chars = 0;
 	/* Check for comments or empty lines and ignore them*/
@@ -80,13 +81,11 @@ bool process_line_first_pass(const char* line, int line_number) {
 			return false;
 		}
 	}
-	if (!calculate_instruction_length_and_update_IC(line, line_number, skip_chars))
-		return false;
-
+	calculate_instruction_length_and_update_IC(line, line_number, skip_chars);
 	add_ic_to_all_data(global_state.instruction_counter);
 	return true;
 }
-bool handle_extern(const char* line)
+bool handle_extern(char* line)
 {
 	/* Insert symbol into symbol table with external flag and no value*/
 	if (!handle_operands(line, EXTERN_DIRECTIVE, false)) {
@@ -96,8 +95,9 @@ bool handle_extern(const char* line)
 	global_state.extern_counter++;
 	return true;
 }
-bool handle_data_or_string(bool has_label, char  label[16], const char* line)
+bool handle_data_or_string(bool has_label, char  label[16], char* line)
 {
+	int data_length;
 	if (has_label) {
 		if (!add_to_symbol_table(label, global_state.data_counter,
 			true, true, DATA_DIRECTIVE)) {
@@ -106,23 +106,26 @@ bool handle_data_or_string(bool has_label, char  label[16], const char* line)
 		}
 	}
 	/*/ Update data counter according to data or string length*/
-	int data_length = process_data_or_string(line);
+	data_length = process_data_or_string(line);
 	global_state.data_counter += data_length;
 	return true;
 }
 /* Calculate the length of the instruction and update the instruction counter */
-int calculate_instruction_length_and_update_IC(const char* line, int line_number, int skip_chars) {
+void calculate_instruction_length_and_update_IC(char* line, int line_number,
+	int skip_chars) {
 	OpcodeTableEntry* opcode_entry = get_opcode(line, skip_chars);
 	Operand operands[MAX_OPERANDS];
+	int operands_num;
+	int instruction_length;
+	char* first_word_binary;
 	line = line + skip_chars;
-	int operands_num = handle_and_count_operands(line, line_number
+	operands_num = handle_and_count_operands(line, line_number
 		, global_state.instruction_counter, opcode_entry->mnemonic, operands);
-	int instruction_length = 1 + operands_num;
+	instruction_length = 1 + operands_num;
 	/* update instruction counter with instruction length*/
-	char* first_word_binary = build_first_word_binary(opcode_entry, operands_num, operands, line_number);
-	global_state.code_image.code_line[(line_number-1)*4] = first_word_binary;/*first code row for that row*/
+	first_word_binary = build_first_word_binary(opcode_entry, operands_num, operands, line_number);
+	global_state.code_image.code_line[(line_number - 1) * 4] = first_word_binary;/*first code row for that row*/
 	global_state.instruction_counter += instruction_length;
-	return instruction_length;
 }
 char* build_first_word_binary(OpcodeTableEntry* opcode_entry, int operands_num, Operand  operands[3], int line_number)
 {
@@ -184,11 +187,8 @@ char* build_first_word_binary(OpcodeTableEntry* opcode_entry, int operands_num, 
 		printf("Error: problems with operands in line %d\n", line_number);
 		break;
 	}
-	if (operands[0].addressing_method != NULL)
-		strcpy(address_method_dest, encode_unique_base_2(operands[0].
-			addressing_method, OPERAND_ADDR_BITS));
-	else
-		strcpy(address_method_dest, "..");
+	strcpy(address_method_dest, encode_unique_base_2(operands[0].
+		addressing_method, OPERAND_ADDR_BITS));
 	param1[PARAM_BITS] = '\0';
 	param2[PARAM_BITS] = '\0';
 	opcode_binary[OPCODE_BITS] = '\0';
@@ -204,7 +204,7 @@ char* build_first_word_binary(OpcodeTableEntry* opcode_entry, int operands_num, 
 	instruction_binary[WORD_SIZE] = '\0';
 	return instruction_binary;
 }
-bool handle_operands(char* line, const char* directive, bool is_relo) {
+bool handle_operands(char* line, char* directive, bool is_relo) {
 	/* Find the directive in the line */
 	char* ptr = line + strlen(directive);
 	char operand[MAX_OPERANDS_LENGTH];
@@ -224,9 +224,10 @@ bool handle_operands(char* line, const char* directive, bool is_relo) {
 		add_to_symbol_table(operand, 0, is_relo, false, directive);
 
 	}
+	return true;
 }
 /* Check if the given line contains an opcode */
-bool is_line_contains_opcode(const char* line) {
+bool is_line_contains_opcode(char* line) {
 	char opcode[MAX_OPCODE_LENGTH + 1];
 
 	/* Attempt to parse the opcode from the line*/
@@ -237,9 +238,10 @@ bool is_line_contains_opcode(const char* line) {
 	else {
 		return false;
 	}
+	return true;
 }
 /* Process a data or string directive from the given line and return the number of words it occupies */
-int process_data_or_string(const char* line) {
+int process_data_or_string(char* line) {
 	char directive[MAX_LABEL_LENGTH + 1];
 	char* ptr = line;
 	int chars_before_directive_counter = 0;
@@ -277,7 +279,6 @@ int process_data_or_string(const char* line) {
 				ptr++;
 			}
 		}
-
 		return data_word_count;
 	}
 	while (isspace(*ptr)) {
@@ -285,6 +286,7 @@ int process_data_or_string(const char* line) {
 	}
 	/** Check if this is a.string directive*/
 	if (strcmp(directive, STRING_DIRECTIVE) == 0) {
+		int str_length = 0;
 		if (*ptr != '\"') {
 			printf("Error: Invalid .string directive\n");
 			return 0;
@@ -292,17 +294,14 @@ int process_data_or_string(const char* line) {
 
 		/*/ Skip the opening quotation mark*/
 		ptr++;
-
-		int str_length = 0;
-
 		while (*ptr && *ptr != '\"') {
 			if (str_length >= MAX_STRING_LENGTH) {
 				printf("Error: String is too long\n");
 				return 0;
 			}
 
-			global_state.data_image.code_line[global_state.data_counter++] = 
-				encode_unique_base_2 (*ptr,WORD_SIZE);
+			global_state.data_image.code_line[global_state.data_counter++] =
+				encode_unique_base_2(*ptr, WORD_SIZE);
 			ptr++;
 			str_length++;
 		}
@@ -322,13 +321,13 @@ int process_data_or_string(const char* line) {
 	return 0;
 }
 /* Parse the opcode from the given line */
-bool parse_opcode(const char* line, char* opcode) {
+bool parse_opcode(char* line, char* opcode) {
 	/*/ Copy the line to a temporary buffer to tokenize it*/
 	char buffer[MAX_LINE_LENGTH + 1];
+	char* token;
 	strcpy(buffer, line);
-
 	/*/ Tokenize the line and extract the first token as the opcode*/
-	char* token = strtok(buffer, " \t");
+	token = strtok(buffer, " \t");
 	if (token != NULL) {
 		strncpy(opcode, token, MAX_OPCODE_LENGTH);
 		opcode[MAX_OPCODE_LENGTH] = '\0';
@@ -338,7 +337,7 @@ bool parse_opcode(const char* line, char* opcode) {
 	return false;
 }
 /* Parse the directive from the given line */
-bool parse_directive(const char* line, char* directive, int* chars_before_directive_counter) {
+bool parse_directive(char* line, char* directive, int* chars_before_directive_counter) {
 	int i = 0;
 	int j = 0;
 	/*/ Check for a dot at the beginning of the line*/
@@ -356,5 +355,5 @@ bool parse_directive(const char* line, char* directive, int* chars_before_direct
 
 	directive[j] = '\0';
 	*chars_before_directive_counter = i;
-
+	return true;
 }

@@ -10,9 +10,9 @@ typedef struct {
 } Operand;
 bool is_jump_opcode(char* mnemonic_name);
 void free_operands(Operand* operands, int num_operands);
-bool is_valid_register(const char* reg);
-char* get_operands_string(const char* line, const char* mnemonic_name);
-bool get_operand_object(const char* operand_str, Operand* operand, bool is_jump);
-int handle_and_count_operands(const char* line, int line_number,
+bool is_valid_register( char* reg);
+char* get_operands_string( char* line,  char* mnemonic_name);
+bool get_operand_object( char* operand_str, Operand* operand, bool is_jump);
+int handle_and_count_operands(char* line, int line_number,
     int* instruction_counter, char* mnemonic_name, Operand operands[]);
-#endif // OPERAND_H
+#endif //* OPERAND_H*/

@@ -5,7 +5,7 @@
 #include "utilities.h"
 #include "output_files.h"
 
-bool generate_output_files(const char* base_filename)
+bool generate_output_files( char* base_filename)
 {
 	char obj_filename[MAX_FILENAME_LENGTH];
 	char entry_filename[MAX_FILENAME_LENGTH];

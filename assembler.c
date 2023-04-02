@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
 
     /* Process input assembly files one by one */
     for (i = 1; i < argc; i++) {
-        const char* base_filename = argv[i];
+         char* base_filename = argv[i];
         printf("Processing file: %s\n", base_filename);
         if (!preprocess(base_filename)) {
             printf("Error: Preprocessing failed for file: %s\n", base_filename);

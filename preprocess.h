@@ -10,6 +10,6 @@
  * @param input_filename The name of the input assembly file.
  * @return true if the preprocessing stage completed successfully, false otherwise.
  */
-bool preprocess(const char* base_filename);
+bool preprocess( char* base_filename);
 
 #endif

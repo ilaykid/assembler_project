@@ -11,7 +11,7 @@ void handle_two_direct_registers(char  instruction_binary[WORD_SIZE + 1], char  
 void handle_jump_line(char instruction_binary[WORD_SIZE + 1], char  address[ADDRESS_BITS + 1]
 	, Operand  operands[MAX_OPERANDS], char  era_method[ERA_BITS + 1], int line_num, int idx_operand);
 
-bool second_pass(const char* base_input_filename) {
+bool second_pass( char* base_input_filename) {
 	/*/ Initialize variables*/
 	int line_num = 0;
 	char line[MAX_LINE_LENGTH];

@@ -3,5 +3,5 @@
 
 #include <stdbool.h>
 
-bool second_pass(const char* base_input_filename);
+bool second_pass(char* base_input_filename);
 #endif /*/ SECOND_PASS_H*/

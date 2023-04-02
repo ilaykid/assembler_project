@@ -3,6 +3,6 @@
 
 #include <stdbool.h>
 
-bool first_pass(const char* filename);
+bool first_pass( char* filename);
 
 #endif /* FIRST_PASS_H */

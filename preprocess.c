@@ -15,10 +15,10 @@ typedef struct Macro {
     struct Macro* next;
 } Macro;
 static Macro* macro_table;
-void insert_macro(const char* name, MacroLine* lines);
-Macro* get_macro(const char* name);
+void insert_macro( char* name, MacroLine* lines);
+Macro* get_macro( char* name);
 
-bool preprocess(const char* base_filename) {
+bool preprocess( char* base_filename) {
     int macro_flag = 0;
     macro_table = NULL;
     char line[MAX_LINE_LENGTH];
@@ -97,7 +97,7 @@ bool preprocess(const char* base_filename) {
     return true;
 }
 
-void insert_macro(const char* name, MacroLine* lines) {
+void insert_macro( char* name, MacroLine* lines) {
     Macro* new_macro = (Macro*)malloc(sizeof(Macro));
     strncpy(new_macro->name, name, MAX_LABEL_LENGTH);
     new_macro->lines = lines;
@@ -105,7 +105,7 @@ void insert_macro(const char* name, MacroLine* lines) {
     macro_table = new_macro;
 }
 
-Macro* get_macro(const char* name) {
+Macro* get_macro( char* name) {
     Macro* curr_macro = macro_table;
     while (curr_macro) {
         if (strcmp(curr_macro->name, name) == 0) {

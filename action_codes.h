@@ -3,10 +3,10 @@
 
 typedef struct {
     int code;
-    const char* name;
+     char* name;
 } ActionCode;
 
-static const ActionCode action_codes[] = {
+static  ActionCode action_codes[] = {
     {0, "mov"},
     {1, "cmp"},
     {2, "add"},

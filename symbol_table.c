@@ -14,7 +14,7 @@ void add_ic_to_all_data(int ic)
         current_entry = current_entry->next;
     }
 }
-bool add_to_symbol_table(const char* symbol, unsigned int address,
+bool add_to_symbol_table( char* symbol, unsigned int address,
     bool relocatable, bool data_part,char* symbol_type) {
     SymbolTableEntry* new_entry = (SymbolTableEntry*)malloc(sizeof(SymbolTableEntry));
     if (!new_entry) {
@@ -42,7 +42,7 @@ bool add_to_symbol_table(const char* symbol, unsigned int address,
     return true;
 }
 /* Find the symbol table entry with the given symbol name */
-SymbolTableEntry* get_symbol(const char* symbol_name) {
+SymbolTableEntry* get_symbol( char* symbol_name) {
     /*Traverse the linked list of symbol table entries*/
     SymbolTableEntry* entry = global_state.symbol_table;
     while (entry != NULL) {
@@ -55,16 +55,16 @@ SymbolTableEntry* get_symbol(const char* symbol_name) {
     /*/ No matching symbol was found in the symbol table*/
     return NULL;
 }
-bool is_valid_label(const char* label) {
+bool is_valid_label( char* label) {
     SymbolTableEntry* entry = get_symbol(label);
     if (entry == NULL) {
         return false;
     }
     return true;
 }
-void process_data_directive(const char* line) {
+void process_data_directive( char* line) {
     char label[MAX_SYMBOL_LENGTH + 1] = { 0 };
-    const char* data_start = strstr(line, ".data") + strlen(".data");
+     char* data_start = strstr(line, ".data") + strlen(".data");
     int value;
     sscanf(line, "%s .data", label);
 

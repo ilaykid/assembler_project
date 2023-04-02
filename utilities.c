@@ -27,8 +27,8 @@ void init_global_state() {
         global_state.data_image.code_line[i] = NULL;
     }
 }
-bool is_line_contains_word(const char* line, const char* word) {
-    const char* result = strstr(line, word);
+bool is_line_contains_word( char* line,  char* word) {
+     char* result = strstr(line, word);
     return (result != NULL);
 }
 /* Function to remove whitespace from the beginning and end of a string */
@@ -47,7 +47,7 @@ void trim_whitespace(char* str)
     *(end + 1) = '\0';
 }
 /* Implement my own strdup*/
-char* strdup(const char* str)
+char* strdup( char* str)
 {
     size_t len = strlen(str);
     char* copy = (char*)malloc(len + 1);
@@ -58,7 +58,7 @@ char* strdup(const char* str)
     return copy;
 }
 /* Function to split a string using the specified delimiter */
-char** split_string(const char* str, const char* delimiter, int* count)
+char** split_string( char* str,  char* delimiter, int* count)
 {
     int i = 0;
     char* token;
@@ -107,8 +107,8 @@ void free_split_string(char** str_array, int count)
     free(str_array);
 }
 /* Function to parse a label from a line of assembly code */
-bool parse_label(const char* line, char* label) {
-    const char* ptr = line;
+bool parse_label( char* line, char* label) {
+     char* ptr = line;
     int label_len = 0;
     /* Skip leading white spaces*/
     while (isspace(*ptr)) {
@@ -132,10 +132,10 @@ bool parse_label(const char* line, char* label) {
     return true;
 }
 /* Parses an instruction from a given line */
-bool parse_instruction(const char* line, char* instruction,int skip_chars) {
-    const char* start = NULL;
-    const char* end = NULL;
-    const char* ptr;
+bool parse_instruction( char* line, char* instruction,int skip_chars) {
+     char* start = NULL;
+     char* end = NULL;
+     char* ptr;
     /* Find the start and end of the instruction */
     for (ptr = line+(skip_chars*sizeof(char)); *ptr != '\0'; ptr++) {
         if (!isspace((unsigned char)*ptr)) {
