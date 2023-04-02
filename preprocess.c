@@ -40,6 +40,7 @@ bool preprocess( char* base_filename) {
         fclose(as_file);
         return false;
     }
+
     while (fgets(line, MAX_LINE_LENGTH, as_file)) {
         /* Check for macro definition */
         if (strncmp(line, "mcr", 3) == 0) {
@@ -94,7 +95,8 @@ bool preprocess( char* base_filename) {
     printf("Finished closing as file: %s\n", base_filename);
     fclose(am_file);
     printf("Finished closing am file: %s\n", base_filename);
-
+    free(am_file);
+    free(as_file);
     return true;
 }
 

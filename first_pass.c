@@ -21,12 +21,13 @@ bool is_line_contains_opcode(char* line);
 void calculate_instruction_length_and_update_IC(char* line, int line_number,
 	int skip_chars);
 bool first_pass(char* base_input_filename) {
+
 	char am_filename[MAX_FILENAME_LENGTH];
 	char line[MAX_LINE_LENGTH];
 	FILE* file;
 	int line_number;
 	bool success;
-
+	printf("Strat first_pass\n");
 	init_global_state();
 	sprintf(am_filename, "%s.am", base_input_filename);
 	file = fopen(am_filename, "r");
@@ -34,37 +35,28 @@ bool first_pass(char* base_input_filename) {
 		perror("Error opening file");
 		return false;
 	}
-
+	printf("Open am file first_pass\n");
 	line_number = 1;
 	success = true;
-
-	// Read and process lines in the assembly file
-	while (fread(line, 1, MAX_LINE_LENGTH, file) > 0) {
-		// Find the end of the line
-		char* end_of_line = strchr(line, '\n');
-
-		// If the line is too long, skip it
-		if (!end_of_line) {
-			fprintf(stderr, "Error: Line %d is too long\n", line_number);
-			while (fread(line, 1, MAX_LINE_LENGTH, file) > 0 && !strchr(line, '\n')) {
-				// Skip the rest of the line
-			}
-			success = false;
-			line_number++;
-			continue;
-		}
-
-		// Remove trailing newline character
-		*end_of_line = '\0';
-
+	/*/ Read and process lines in the assembly file*/
+	
+	while (fgets(line, 256, file) ) {
+		printf("%d\n", line_number++);
+	}
+	/*while (fgets(line, MAX_LINE_LENGTH, file)) {
+		printf("Read line  - %s\n",line);
+		 Remove trailing newline character
+		trim_whitespace(line);
 		if (!process_line_first_pass(line, line_number)) {
 			fprintf(stderr, "Error: Syntax error at line %d\n", line_number);
 			success = false;
 		}
 		line_number++;
-	}
+		printf("finish line\n");
+	} */
 
-	fclose(file);
+	printf("finish first_pass");
+	printf("closed file first_pass");
 	return success;
 }
 bool process_line_first_pass(char* line, int line_number) {
