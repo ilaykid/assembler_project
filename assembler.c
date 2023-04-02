@@ -23,7 +23,8 @@ int main(int argc, char* argv[]) {
             printf("Error: Preprocessing failed for file: %s\n", base_filename);
             continue;
         }
-
+        printf("Finished processing file: %s\n", base_filename);
+        
         /* First pass */
         if (!first_pass(base_filename)) {
             printf("Error: First pass failed for file: %s\n", base_filename);

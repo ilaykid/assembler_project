@@ -13,5 +13,5 @@ bool is_valid_register( char* reg);
 char* get_operands_string( char* line,  char* mnemonic_name);
 bool get_operand_object( char* operand_str, Operand* operand, bool is_jump);
 int handle_and_count_operands(char* line, int line_number,
-    int* instruction_counter, char* mnemonic_name, Operand operands[]);
+    int instruction_counter, char* mnemonic_name, Operand operands[]);
 #endif /* OPERAND_H*/

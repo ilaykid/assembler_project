@@ -91,7 +91,9 @@ bool preprocess( char* base_filename) {
 
     /* Close files */
     fclose(as_file);
+    printf("Finished closing as file: %s\n", base_filename);
     fclose(am_file);
+    printf("Finished closing am file: %s\n", base_filename);
 
     return true;
 }
