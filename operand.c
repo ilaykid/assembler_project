@@ -7,33 +7,22 @@
 bool is_valid_register(char* reg);
 char* list_of_registers[MAX_REGISTER_NUM] = 
 {"r0","r1","r2" ,"r3" ,"r4" ,"r5" ,"r6" ,"r7" };
-Operand create_operand(int value, int address, int addressing_method){
-    Operand operand = {
-        .value = value,
-        /*.address = address,*/
-        .addressing_method = addressing_method
-    };
-    return operand;
-}
-void free_operands(Operand* operands, int num_operands) {
-    for (int i = 0; i < num_operands; i++) {
-        if (operands[i].value != NULL) {
-            free(operands[i].value);
-        }
-    }
-}
 /* Extract the operand from the given string */
 char* get_operands_string(char* line, char* mnemonic_name) {
+
+    char* operand_start;
+    int operand_length;
+    char* operands_string;
     /*/ Check that the line begins with the expected mnemonic name*/
     if (strncmp(line, mnemonic_name, strlen(mnemonic_name)) != 0) {
         return NULL;
     }
 
     /*/ Skip over the mnemonic name*/
-    char* operand_start = line + strlen(mnemonic_name);
-    int operand_length = line+strlen(line) - operand_start;
-    char* operands_string = malloc(operand_length + 1);
 
+    operand_start = line + strlen(mnemonic_name);
+    operand_length = line + strlen(line) - operand_start;
+    operands_string = malloc(operand_length + 1);
     while (*operand_start == ' ' || *operand_start == '\t') {
         operand_start++;
     }

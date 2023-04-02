@@ -19,20 +19,22 @@ void insert_macro( char* name, MacroLine* lines);
 Macro* get_macro( char* name);
 
 bool preprocess( char* base_filename) {
-    int macro_flag = 0;
-    macro_table = NULL;
     char line[MAX_LINE_LENGTH];
     char macro_name[MAX_LABEL_LENGTH];
     char as_filename[MAX_FILENAME_LENGTH];
     char am_filename[MAX_FILENAME_LENGTH];
+    Macro* macro;
+    FILE* as_file;
+    FILE* am_file;
     sprintf(as_filename, "%s.as", base_filename);
     sprintf(am_filename, "%s.am", base_filename);
-    FILE* as_file = fopen(as_filename, "r");
+    macro_table = NULL;
+    as_file = fopen(as_filename, "r");
     if (!as_file) {
         printf("Error: Failed to open input file: %s\n", base_filename);
         return false;
     }
-    FILE* am_file = fopen(am_filename, "w");
+    am_file = fopen(am_filename, "w");
     if (!am_file) {
         printf("Error: Failed to create output file: %s\n", am_filename);
         fclose(as_file);
@@ -41,16 +43,12 @@ bool preprocess( char* base_filename) {
     while (fgets(line, MAX_LINE_LENGTH, as_file)) {
         /* Check for macro definition */
         if (strncmp(line, "mcr", 3) == 0) {
-            /* Turn on macro flag */
-            macro_flag = 1;
-            /* Insert macro name into macro table */
-            sscanf(line, "mcr %s", macro_name);
             MacroLine* lines = NULL;
             MacroLine* curr_line = NULL;
+            /* Insert macro name into macro table */
+            sscanf(line, "mcr %s", macro_name);
             while (fgets(line, MAX_LINE_LENGTH, as_file)) {
                 if (strncmp(line, "endmcr", 6) == 0) {
-                    /* Turn off macro flag */
-                    macro_flag = 0;
                     /* Insert macro into macro table */
                     insert_macro(macro_name, lines);
                     break;
@@ -74,7 +72,7 @@ bool preprocess( char* base_filename) {
         else {
             char macro_name[MAX_LABEL_LENGTH];
             sscanf(line, "%s", macro_name);
-            Macro* macro = get_macro(macro_name);
+            macro = get_macro(macro_name);
             if (macro) {
                 /* Copy macro lines to output file */
                 MacroLine* curr_line = macro->lines;
@@ -89,6 +87,7 @@ bool preprocess( char* base_filename) {
             }
         }
     }
+    printf("Close am file: %s\n", base_filename);
 
     /* Close files */
     fclose(as_file);
